@@ -14,8 +14,6 @@ namespace DatabaseQueue
         private long _enqueued = long.MinValue, 
             _dequeued = long.MinValue;
 
-        public BlockingQueue(IQueue<T> queue) : this(queue, -1, 2500) { }
-
         public BlockingQueue(IQueue<T> queue, int capacity, int timeout)
         {
             _queue = queue;
@@ -28,6 +26,8 @@ namespace DatabaseQueue
 
         private bool TryEnqueueMultiple(ICollection<T> items, Func<bool> timer)
         {
+            var count = items.Count;
+            
             do
             {
                 var enqueued = _enqueued;
@@ -35,11 +35,13 @@ namespace DatabaseQueue
 
                 if (_capacity != -1)
                 {
-                    if (enqueued - dequeued > _capacity)
+                    var used = enqueued - dequeued;
+
+                    if (count > (_capacity - used))
                         continue;
                 }
 
-                if (Interlocked.CompareExchange(ref _enqueued, enqueued + 1, enqueued) != enqueued)
+                if (Interlocked.CompareExchange(ref _enqueued, enqueued + count, enqueued) != enqueued)
                     continue;
 
                 if (!_queue.TryEnqueueMultiple(items))
@@ -52,6 +54,7 @@ namespace DatabaseQueue
             return false;
         }
 
+        // TODO: Fix this decrementing fuckup
         private bool TryDequeueMultiple(out ICollection<T> items, int max, Func<bool> timer)
         {
             items = default(ICollection<T>);
@@ -80,7 +83,7 @@ namespace DatabaseQueue
 
         public int Count
         {
-            get { throw new NotImplementedException(); }
+            get { return _queue.Count; }
         }
 
         public bool TryEnqueueMultiple(ICollection<T> items)

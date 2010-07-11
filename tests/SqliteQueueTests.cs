@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests
@@ -13,21 +12,21 @@ namespace DatabaseQueue.Tests
     {
         #region Initialization
 
-        private static readonly ICollection<DummyEntity> _items 
-            = DummyEntity.CreateCollection();
+        private static readonly ICollection<Entity> _items 
+            = Entity.CreateCollection();
 
-        private static SqliteQueue<DummyEntity> _queue;
+        private static SqliteQueue<Entity> _queue;
         private static IStorageSchema _schema;
-        private static ISerializer<DummyEntity> _serializer;
+        private static ISerializer<Entity> _serializer;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
             _schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
-            _serializer = new JsonSerializer<DummyEntity>();
+            _serializer = new JsonSerializer<Entity>();
 
             var path = GetFilePath(context, "SerializationTests.queue");
-            _queue = new SqliteQueue<DummyEntity>(path, _schema, _serializer);
+            _queue = new SqliteQueue<Entity>(path, _schema, _serializer);
             _queue.Initialize();
         }
 
@@ -137,7 +136,7 @@ namespace DatabaseQueue.Tests
         [TestMethod]
         public void SqliteQueue_TryDequeueMultiple_RemovesItemsFromQueue()
         {
-            ICollection<DummyEntity> items;
+            ICollection<Entity> items;
 
             Assert.IsTrue(_queue.TryEnqueueMultiple(_items));
             Assert.IsTrue(_queue.TryDequeueMultiple(out items, int.MaxValue));
@@ -153,7 +152,7 @@ namespace DatabaseQueue.Tests
         [TestMethod]
         public void SqliteQueue_TryDequeueMultiple_0Max_Returns_EmptyCollection()
         {
-            ICollection<DummyEntity> items;
+            ICollection<Entity> items;
 
             Assert.IsFalse(_queue.TryDequeueMultiple(out items, 0));
             Assert.IsTrue(items.IsNullOrEmpty());

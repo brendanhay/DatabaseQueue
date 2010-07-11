@@ -4,19 +4,19 @@ namespace DatabaseQueue.Tests
 {
     public abstract class SerializerTestBase
     {
-        protected void TestInitialize(ISerializer<DummyEntity> serializer)
+        protected void TestInitialize(ISerializer<Entity> serializer)
         {
             Serializer = serializer;
-            Entity = DummyEntity.Create();
+            Entity = Entity.Create();
         }
 
-        protected ISerializer<DummyEntity> Serializer { get; private set; }
+        protected ISerializer<Entity> Serializer { get; private set; }
 
-        protected DummyEntity Entity { get; private set; }
+        protected Entity Entity { get; private set; }
 
         #region Assertions
 
-        protected object AssertTrySerializeIsTrue(DummyEntity entity)
+        protected object AssertTrySerializeIsTrue(Entity entity)
         {
             object serialized;
 
@@ -26,9 +26,9 @@ namespace DatabaseQueue.Tests
             return serialized;
         }
 
-        protected DummyEntity AssertTryDeserializeIsTrue(object serialized)
+        protected Entity AssertTryDeserializeIsTrue(object serialized)
         {
-            DummyEntity deserialized;
+            Entity deserialized;
 
             Assert.IsTrue(Serializer.TryDeserialize(serialized, out deserialized));
             Assert.IsNotNull(deserialized);
@@ -36,7 +36,7 @@ namespace DatabaseQueue.Tests
             return deserialized;
         }
 
-        protected void AssertSerializeThenDeserializeAreEqual(DummyEntity entity)
+        protected void AssertSerializeThenDeserializeAreEqual(Entity entity)
         {
             var serialized = AssertTrySerializeIsTrue(entity);
             var deserialized = AssertTryDeserializeIsTrue(serialized);

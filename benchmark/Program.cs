@@ -18,30 +18,30 @@ namespace DatabaseQueue.Benchmark
 
             Console.WriteLine("Starting{0}", Environment.NewLine);
 
-            var serializers = new Dictionary<ISerializer<DummyEntity>, Func<object, byte[]>> { 
-                { new BinarySerializer<DummyEntity>(), bytes => ((byte[])bytes) },
-                { new XmlSerializer<DummyEntity>(), xml => Encoding.UTF8.GetBytes(xml.ToString()) },
-                { new JsonSerializer<DummyEntity>(), json => Encoding.UTF8.GetBytes(json.ToString()) }
+            var serializers = new Dictionary<ISerializer<Entity>, Func<object, byte[]>> { 
+                { new BinarySerializer<Entity>(), bytes => ((byte[])bytes) },
+                { new XmlSerializer<Entity>(), xml => Encoding.UTF8.GetBytes(xml.ToString()) },
+                { new JsonSerializer<Entity>(), json => Encoding.UTF8.GetBytes(json.ToString()) }
             };
 
             foreach (var pair in serializers)
             {
-                BenchmarkSerializer(pair.Key, pair.Value, DummyEntity.Create, ITERATIONS);
+                BenchmarkSerializer(pair.Key, pair.Value, Entity.Create, ITERATIONS);
 
                 Thread.Sleep(250);
             }
 
-            var queues = new Dictionary<string, IQueue<DummyEntity>> {
-                { "BinaryQueue", SqliteQueue.CreateBinaryQueue<DummyEntity>("BinaryBenchmark.queue") },
-                { "XmlQueue", SqliteQueue.CreateXmlQueue<DummyEntity>("XmlBenchmark.queue") },
-                { "JsonQueue", SqliteQueue.CreateJsonQueue<DummyEntity>("JsonBenchmark.queue") }
+            var queues = new Dictionary<string, IQueue<Entity>> {
+                { "BinaryQueue", SqliteQueue.CreateBinaryQueue<Entity>("BinaryBenchmark.queue") },
+                { "XmlQueue", SqliteQueue.CreateXmlQueue<Entity>("XmlBenchmark.queue") },
+                { "JsonQueue", SqliteQueue.CreateJsonQueue<Entity>("JsonBenchmark.queue") }
             };
 
             foreach (var pair in queues)
             {
-                var queue = pair.Value as DatabaseQueueBase<DummyEntity>;
+                var queue = pair.Value as DatabaseQueueBase<Entity>;
 
-                BenchmarkQueue(pair.Key, queue, () => DummyEntity.CreateCollection(1000), ITERATIONS);
+                BenchmarkQueue(pair.Key, queue, () => Entity.CreateCollection(1000), ITERATIONS);
 
                 Thread.Sleep(250);
             }

@@ -8,7 +8,7 @@ namespace DatabaseQueue.Tests
         [TestInitialize]
         public void TestInitialize()
         {
-            TestInitialize(new BinarySerializer<DummyEntity>());
+            TestInitialize(new BinarySerializer<Entity>());
         }
 
         [TestMethod]
