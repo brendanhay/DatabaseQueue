@@ -36,7 +36,7 @@ namespace DatabaseQueue.Tests
             Assert.IsFalse(_queue.TryEnqueueMultiple(_items));
             watch.Stop();
 
-            Assert.IsTrue(watch.ElapsedMilliseconds > TIMEOUT);
+            Assert.IsTrue(watch.ElapsedMilliseconds >= TIMEOUT);
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace DatabaseQueue.Tests
             Assert.IsFalse(_queue.TryDequeueMultiple(out items, 1));
             watch.Stop();
 
-            Assert.IsTrue(watch.ElapsedMilliseconds > TIMEOUT);
+            Assert.IsTrue(watch.ElapsedMilliseconds >= TIMEOUT);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace DatabaseQueue.Tests
             ICollection<Entity> items;
 
             Assert.IsTrue(queue.TryEnqueueMultiple(_items));
-            Assert.IsTrue(queue.TryDequeueMultiple(out items, _items.Count*2));
+            Assert.IsTrue(queue.TryDequeueMultiple(out items, _items.Count * 5));
             Assert.IsTrue(items.Count == _items.Count);
         }
     }

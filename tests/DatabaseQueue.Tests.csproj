@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="BinarySerializerTests.cs" />
     <Compile Include="BlockingQueueTests.cs" />
+    <Compile Include="XmlSerializerTests.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="JsonSerializerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
