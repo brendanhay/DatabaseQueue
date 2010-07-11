@@ -1,11 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 
 namespace DatabaseQueue
 {
+    #region Factory Methods
+
+    /// <summary>
+    /// Some factory method examples of the various queue combinations
+    /// </summary>
+    public static class SqliteQueue
+    {
+        #region Standard 
+
+        public static IQueue<T> CreateBinaryQueue<T>(string path)
+        {
+            return new SqliteQueue<T>(path, StorageSchema.Binary(), new BinarySerializer<T>());
+        }
+
+        public static IQueue<T> CreateJsonQueue<T>(string path)
+        {
+            return new SqliteQueue<T>(path, StorageSchema.Json(), new JsonSerializer<T>());
+        }
+
+        #endregion
+
+        #region Blocking
+
+        public static IQueue<T> CreateBlockingBinaryQueue<T>(string path, int capacity,
+            int timeout)
+        {
+            var queue = CreateBinaryQueue<T>(path);
+
+            return new BlockingQueue<T>(queue, capacity, timeout);
+        }
+
+        public static IQueue<T> CreateBlockingJsonQueue<T>(string path, int capacity, int timeout)
+        {
+            var queue = CreateJsonQueue<T>(path);
+
+            return new BlockingQueue<T>(queue, capacity, timeout);
+        }
+
+        #endregion
+
+        #region ThreadSafe / Blocking
+
+        public static IQueue<T> CreateThreadSafeBlockingBinaryQueue<T>(string path, int capacity, 
+            int timeout)
+        {
+            var queue = CreateBlockingBinaryQueue<T>(path, capacity, timeout);
+
+            return new ThreadSafeQueue<T>(queue);
+        }
+
+        public static IQueue<T> CreateThreadSafeBlockingJsonQueue<T>(string path, int capacity,
+             int timeout)
+        {
+            var queue = CreateBlockingJsonQueue<T>(path, capacity, timeout);
+
+            return new ThreadSafeQueue<T>(queue);
+        }
+
+        #endregion
+    }
+
+    #endregion
+
     public sealed class SqliteQueue<T> : DatabaseQueueBase<T>
     {
         #region Formats
@@ -18,9 +80,6 @@ namespace DatabaseQueue
             COUNT = "SELECT COUNT({0}) FROM {1}";
 
         #endregion
-
-        public SqliteQueue(string path) 
-            : this(path, StorageSchema.Binary(), new BinarySerializer<T>()) { }
 
         public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer) 
             : base(schema,  serializer)
