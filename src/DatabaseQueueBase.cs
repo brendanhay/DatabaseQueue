@@ -10,6 +10,7 @@ namespace DatabaseQueue
         private readonly ISerializer<T> _serializer;
 
         private int _disposed;
+        private volatile int _count;
 
         protected DatabaseQueueBase(IStorageSchema schema, ISerializer<T> serializer)
         {
@@ -23,6 +24,8 @@ namespace DatabaseQueue
 
             EnsureConnectionIsOpen();
             EnsureTableExists();
+
+            _count = ExecuteCountCommand();
         }
 
         protected IDbConnection Connection { get; private set; }
@@ -34,10 +37,9 @@ namespace DatabaseQueue
         protected abstract IDbConnection CreateConnection();
 
         protected abstract IDbCommand CreateDeleteCommand(IEnumerable<object> keys);
-
         protected abstract IDbCommand CreateInsertCommand(out IDbDataParameter parameter);
-
         protected abstract IDbCommand CreateSelectCommand(int max);
+        protected abstract IDbCommand CreateCountCommand();
 
         protected abstract void EnsureTableExists();
 
@@ -59,30 +61,10 @@ namespace DatabaseQueue
 
         #region Bulk Insert / Select / Delete
 
-        private bool TryInsertMultiple(ICollection<T> items)
+        private int ExecuteCountCommand()
         {
-            if (items.IsNullOrEmpty())
-                return false;
-
-            EnsureConnectionIsOpen();
-
-            var rows = 0;
-
-            using (var transaction = Connection.BeginTransaction())
-            {
-                try
-                {
-                    rows = ExecuteInsertCommand(items);
-
-                    transaction.Commit();
-                }
-                catch (InvalidOperationException)
-                {
-                    transaction.Rollback();
-                }
-            }
-
-            return rows == items.Count;
+            using (var command = CreateCountCommand())
+                return Convert.ToInt32(command.ExecuteScalar());
         }
 
         private int ExecuteInsertCommand(IEnumerable<T> items)
@@ -116,7 +98,7 @@ namespace DatabaseQueue
                     while (reader.Read())
                     {
                         object key = reader.GetValue(Schema.Key),
-                               value = reader.GetValue(Schema.Value);
+                            value = reader.GetValue(Schema.Value);
 
                         T item;
 
@@ -139,6 +121,32 @@ namespace DatabaseQueue
 
             using (var delete = CreateDeleteCommand(deletions))
                 delete.ExecuteNonQuery();
+        }
+
+        private bool TryInsertMultiple(ICollection<T> items)
+        {
+            if (items.IsNullOrEmpty())
+                return false;
+
+            EnsureConnectionIsOpen();
+
+            var rows = 0;
+
+            using (var transaction = Connection.BeginTransaction())
+            {
+                try
+                {
+                    rows = ExecuteInsertCommand(items);
+
+                    transaction.Commit();
+                }
+                catch (InvalidOperationException)
+                {
+                    transaction.Rollback();
+                }
+            }
+
+            return rows == items.Count;
         }
 
         private bool TrySelectAndDeleteMultiple(out ICollection<T> items, int max)
@@ -206,12 +214,14 @@ namespace DatabaseQueue
 
         #region IQueue<T> Members
 
-        public bool TryEnqueueMultiple(ICollection<T> items, int timeout)
+        public int Count { get { return _count; } }
+
+        public bool TryEnqueueMultiple(ICollection<T> items)
         {
             return TryInsertMultiple(items);
         }
 
-        public bool TryDequeueMultiple(out ICollection<T> items, int max, int timeout)
+        public bool TryDequeueMultiple(out ICollection<T> items, int max)
         {
             return TrySelectAndDeleteMultiple(out items, max);
         }

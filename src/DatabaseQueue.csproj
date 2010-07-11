@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinarySerializer.cs" />
+    <Compile Include="BlockingQueue.cs" />
     <Compile Include="DatabaseQueueBase.cs" />
     <Compile Include="IEnumerableExtensions.cs" />
     <Compile Include="IQueue.cs" />
@@ -68,7 +69,6 @@
       <Link>sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

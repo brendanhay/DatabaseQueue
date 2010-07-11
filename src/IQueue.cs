@@ -4,8 +4,10 @@ namespace DatabaseQueue
 {
     public interface IQueue<T>
     {
-        bool TryEnqueueMultiple(ICollection<T> items, int timeout);
+        int Count { get; }
 
-        bool TryDequeueMultiple(out ICollection<T> items, int max, int timeout);
+        bool TryEnqueueMultiple(ICollection<T> items);
+
+        bool TryDequeueMultiple(out ICollection<T> items, int max);
     }
 }
