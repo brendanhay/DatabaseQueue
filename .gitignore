@@ -1,0 +1,10 @@
+obj
+bin
+deploy
+TestResults
+_ReSharper*
+*.user
+*.resharper
+*.suo
+*.cache
+~$*
