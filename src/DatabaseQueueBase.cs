@@ -18,7 +18,7 @@ namespace DatabaseQueue
             _serializer = serializer;
         }
 
-        public virtual void Initialize()
+        public void Initialize()
         {
             Connection = CreateConnection();
 
@@ -32,18 +32,7 @@ namespace DatabaseQueue
 
         protected IStorageSchema Schema { get; private set; }
 
-        #region Abstract / Virtual Members
-
-        protected abstract IDbConnection CreateConnection();
-
-        protected abstract IDbCommand CreateDeleteCommand(IEnumerable<object> keys);
-        protected abstract IDbCommand CreateInsertCommand(out IDbDataParameter parameter);
-        protected abstract IDbCommand CreateSelectCommand(int max);
-        protected abstract IDbCommand CreateCountCommand();
-
-        protected abstract void EnsureTableExists();
-
-        protected virtual void EnsureConnectionIsOpen()
+        private void EnsureConnectionIsOpen()
         {
             if (Connection == null)
                 throw new NullReferenceException("Ensure a call to Initialize/0 is made before using the queue");
@@ -56,6 +45,17 @@ namespace DatabaseQueue
                     break;
             }
         }
+
+        #region Abstract / Virtual Members
+
+        protected abstract IDbConnection CreateConnection();
+
+        protected abstract IDbCommand CreateDeleteCommand(IEnumerable<object> keys);
+        protected abstract IDbCommand CreateInsertCommand(out IDbDataParameter parameter);
+        protected abstract IDbCommand CreateSelectCommand(int max);
+        protected abstract IDbCommand CreateCountCommand();
+
+        protected abstract void EnsureTableExists();
 
         #endregion
 

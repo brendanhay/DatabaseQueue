@@ -21,6 +21,7 @@ namespace DatabaseQueue
             _queue = queue;
             _capacity = capacity;
             _timeout = timeout;
+            _enqueued += queue.Count;
         }
 
         #region Blocking Enqueue / Dequeue

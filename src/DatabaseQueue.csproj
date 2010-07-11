@@ -63,6 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqliteQueue.cs" />
     <Compile Include="StorageSchema.cs" />
+    <Compile Include="ThreadSafeQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\lib\sqlite3.dll">

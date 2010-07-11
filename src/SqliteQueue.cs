@@ -10,11 +10,12 @@ namespace DatabaseQueue
     {
         #region Formats
 
-        public const string CONNECTION = "Data Source={0}",
+        private const string CONNECTION = "Data Source={0}",
             CREATE_TABLE = "CREATE TABLE IF NOT EXISTS {0}({1} {2} primary key autoincrement, {3} {4})",
             SELECT = "SELECT * FROM {0} LIMIT {1}",
             DELETE = "DELETE FROM {0} WHERE {1} IN({2})",
-            INSERT = "INSERT INTO {0}({1}) VALUES(?)";
+            INSERT = "INSERT INTO {0}({1}) VALUES(?)",
+            COUNT = "SELECT COUNT({0}) FROM {1}";
 
         #endregion
 
@@ -59,6 +60,13 @@ namespace DatabaseQueue
         {
             var commandText = string.Format(DELETE, Schema.Table, Schema.Key,
                 string.Join(",", keys.Select(key => key.ToString()).ToArray()));
+
+            return CreateCommand(commandText);
+        }
+
+        protected override IDbCommand CreateCountCommand()
+        {
+            var commandText = string.Format(COUNT, Schema.Key, Schema.Table);
 
             return CreateCommand(commandText);
         }
