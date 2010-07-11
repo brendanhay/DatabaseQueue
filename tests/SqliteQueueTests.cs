@@ -23,7 +23,7 @@ namespace DatabaseQueue.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            _schema = StorageSchema.Json();
+            _schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
             _serializer = new JsonSerializer<DummyEntity>();
 
             var path = GetFilePath(context, "SerializationTests.queue");

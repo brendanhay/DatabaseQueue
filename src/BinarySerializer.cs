@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -29,7 +30,7 @@ namespace DatabaseQueue
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }
@@ -50,7 +51,7 @@ namespace DatabaseQueue
 
                 return deserialized != null;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }

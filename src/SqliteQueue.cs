@@ -11,17 +11,28 @@ namespace DatabaseQueue
     /// Some factory method examples of the various queue combinations
     /// </summary>
     public static class SqliteQueue
-    {
+    {   
         #region Standard 
 
         public static IQueue<T> CreateBinaryQueue<T>(string path)
         {
-            return new SqliteQueue<T>(path, StorageSchema.Binary(), new BinarySerializer<T>());
+            var schema = StorageSchema.Create("integer", DbType.Int32, "blob", DbType.Binary);
+
+            return new SqliteQueue<T>(path, schema, new BinarySerializer<T>());
         }
 
         public static IQueue<T> CreateJsonQueue<T>(string path)
         {
-            return new SqliteQueue<T>(path, StorageSchema.Json(), new JsonSerializer<T>());
+            var schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
+
+            return new SqliteQueue<T>(path, schema, new JsonSerializer<T>());
+        }
+
+        public static IQueue<T> CreateXmlQueue<T>(string path)
+        {
+            var schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
+
+            return new SqliteQueue<T>(path, schema, new XmlSerializer<T>());
         }
 
         #endregion
@@ -43,6 +54,13 @@ namespace DatabaseQueue
             return new BlockingQueue<T>(queue, capacity, timeout);
         }
 
+        public static IQueue<T> CreateBlockingXmlQueue<T>(string path, int capacity, int timeout)
+        {
+            var queue = CreateXmlQueue<T>(path);
+
+            return new BlockingQueue<T>(queue, capacity, timeout);
+        }
+
         #endregion
 
         #region ThreadSafe / Blocking
@@ -59,6 +77,14 @@ namespace DatabaseQueue
              int timeout)
         {
             var queue = CreateBlockingJsonQueue<T>(path, capacity, timeout);
+
+            return new ThreadSafeQueue<T>(queue);
+        }
+
+        public static IQueue<T> CreateThreadSafeBlockingXmlQueue<T>(string path, int capacity,
+             int timeout)
+        {
+            var queue = CreateBlockingXmlQueue<T>(path, capacity, timeout);
 
             return new ThreadSafeQueue<T>(queue);
         }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace DatabaseQueue
 {
@@ -16,7 +17,7 @@ namespace DatabaseQueue
 
                 return serialized != null;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }
@@ -32,7 +33,7 @@ namespace DatabaseQueue
 
                 return deserialized != null;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }

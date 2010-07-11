@@ -4,43 +4,52 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using DatabaseQueue.Tests;
 
 namespace DatabaseQueue.Benchmark
 {
-    internal class Program
+    internal static class Program
     {
+        private const int ITERATIONS = 5;
+
         public static void Main(string[] args)
         {
+
             Console.WriteLine("Starting{0}", Environment.NewLine);
 
-            var binarySerializer = new BinarySerializer<DummyEntity>();
-            var jsonSerializer = new JsonSerializer<DummyEntity>();
+            var serializers = new Dictionary<ISerializer<DummyEntity>, Func<object, byte[]>> { 
+                { new BinarySerializer<DummyEntity>(), bytes => ((byte[])bytes) },
+                { new XmlSerializer<DummyEntity>(), xml => Encoding.UTF8.GetBytes(xml.ToString()) },
+                { new JsonSerializer<DummyEntity>(), json => Encoding.UTF8.GetBytes(json.ToString()) }
+            };
 
-            var binaryQueue = CreateQueue("BinaryBenchmark.queue", StorageSchema.Binary(), binarySerializer);
-            var jsonQueue = CreateQueue("JsonBenchmark.queue", StorageSchema.Json(), jsonSerializer);
+            foreach (var pair in serializers)
+            {
+                BenchmarkSerializer(pair.Key, pair.Value, DummyEntity.Create, ITERATIONS);
 
-            const int iterations = 5;
+                Thread.Sleep(250);
+            }
 
-            BenchmarkSerializer("Binary Serializer", binarySerializer, 
-                serialized => ((byte[])serialized), DummyEntity.Create, iterations);
-            BenchmarkSerializer("Json Serializer", jsonSerializer,
-                serialized => Encoding.UTF8.GetBytes(serialized.ToString()), DummyEntity.Create, iterations);
+            var queues = new Dictionary<string, IQueue<DummyEntity>> {
+                { "BinaryQueue", SqliteQueue.CreateBinaryQueue<DummyEntity>("BinaryBenchmark.queue") },
+                { "XmlQueue", SqliteQueue.CreateXmlQueue<DummyEntity>("XmlBenchmark.queue") },
+                { "JsonQueue", SqliteQueue.CreateJsonQueue<DummyEntity>("JsonBenchmark.queue") }
+            };
 
-            BenchmarkQueue("Binary Queue", binaryQueue, () => DummyEntity.CreateCollection(1000), iterations);
-            BenchmarkQueue("Json Queue", jsonQueue, () => DummyEntity.CreateCollection(1000), iterations);
-            
+            foreach (var pair in queues)
+            {
+                var queue = pair.Value as DatabaseQueueBase<DummyEntity>;
+
+                BenchmarkQueue(pair.Key, queue, () => DummyEntity.CreateCollection(1000), ITERATIONS);
+
+                Thread.Sleep(250);
+            }
+
             Console.WriteLine("Finished{0}", Environment.NewLine);
         }
 
-        private static DatabaseQueueBase<T> CreateQueue<T>(string name, IStorageSchema schema, 
-            ISerializer<T> serializer)
-        {
-            return new SqliteQueue<T>(Path.Combine(Environment.CurrentDirectory, name), schema, 
-                serializer);
-        }
-
-        private static void BenchmarkSerializer<T>(string name, ISerializer<T> serializer, 
+        private static void BenchmarkSerializer<T>(ISerializer<T> serializer, 
             Func<object, byte[]> size, Func<T> factory, int iterations)
         {
             var watch = new Stopwatch();
@@ -73,7 +82,7 @@ namespace DatabaseQueue.Benchmark
                 deserialization.Add(watch.ElapsedMilliseconds);
             }
 
-            WriteTitle(name);
+            WriteTitle(serializer.GetType().Name);
             
             WriteAverages("Serialization", serialization);
             WriteAverages("Deserialization", deserialization);
@@ -156,7 +165,7 @@ namespace DatabaseQueue.Benchmark
 
         private static void WriteMeasurement(string method, long measurement, string suffix)
         {
-            Console.WriteLine(" {1}{0}  -> {2} ms", Environment.NewLine, method, measurement, suffix);   
+            Console.WriteLine(" {1}{0}  -> {2} {3}", Environment.NewLine, method, measurement, suffix);   
         }
 
         private static void WriteAverages(string method, IEnumerable<long> events)

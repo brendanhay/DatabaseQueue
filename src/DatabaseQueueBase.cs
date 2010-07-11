@@ -10,7 +10,7 @@ namespace DatabaseQueue
         private readonly ISerializer<T> _serializer;
 
         private int _disposed;
-        private volatile int _count;
+        private int _count;
 
         protected DatabaseQueueBase(IStorageSchema schema, ISerializer<T> serializer)
         {
@@ -81,7 +81,12 @@ namespace DatabaseQueue
                     if (_serializer.TrySerialize(item, out serialized))
                         parameter.Value = serialized;
 
-                    rows += command.ExecuteNonQuery();
+                    if (command.ExecuteNonQuery() != 1) 
+                        continue;
+                    
+                    rows++;
+
+                    Interlocked.Increment(ref _count);
                 }
             }
 
@@ -120,7 +125,12 @@ namespace DatabaseQueue
             if (deletions.Count <= 0) return;
 
             using (var delete = CreateDeleteCommand(deletions))
-                delete.ExecuteNonQuery();
+            {
+                var rows = delete.ExecuteNonQuery();
+
+                if (rows > 0)
+                    Interlocked.Add(ref _count, -rows);
+            }
         }
 
         private bool TryInsertMultiple(ICollection<T> items)

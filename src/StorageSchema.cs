@@ -15,23 +15,13 @@ namespace DatabaseQueue
     {
         #region Factory Methods
 
-        public static IStorageSchema Binary()
-        {
-            return Create("Queue", "integer", DbType.Int32, "blob", DbType.Binary);
-        }
-
-        public static IStorageSchema Json()
-        {
-            return Create("Queue", "integer", DbType.Int32, "text", DbType.String);
-        }
-
-        public static IStorageSchema Create(string table, string keyType, DbType keyParameter, 
-            string valueType, DbType valueParameter)
+        public static IStorageSchema Create(string keyType, DbType keyParameter, string valueType, 
+            DbType valueParameter)
         {
             var key = new StorageColumn(0, "Id", keyType, keyParameter);
             var value = new StorageColumn(1, "Value", valueType, valueParameter);
 
-            return new StorageSchema(table, key, value);
+            return new StorageSchema("Queue", key, value);
         }
 
         #endregion

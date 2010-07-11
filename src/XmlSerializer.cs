@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Xml.Serialization;
 
 namespace DatabaseQueue
@@ -34,7 +35,7 @@ namespace DatabaseQueue
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }
@@ -51,7 +52,7 @@ namespace DatabaseQueue
 
                 return deserialized != null;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }

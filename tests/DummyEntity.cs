@@ -14,12 +14,12 @@ namespace DatabaseQueue.Tests
             return new DummyEntity(true);
         }
 
-        public static ICollection<DummyEntity> CreateCollection()
+        public static List<DummyEntity> CreateCollection()
         {
             return CreateCollection(10);
         }
 
-        public static ICollection<DummyEntity> CreateCollection(int count)
+        public static List<DummyEntity> CreateCollection(int count)
         {
             return Enumerable.Range(1, count).Select(i => Create()).ToList();
         }
@@ -36,12 +36,12 @@ namespace DatabaseQueue.Tests
             Text = "Taumatawhakatangihangakoauauotamateapokaiwhenuakitanatahu";
             Number = int.MaxValue;
             Date = DateTime.UtcNow;
-            Urls = new List<Uri> {
-               new Uri("http://google.com"),
-               new Uri("http://jobview.monster.com"),
-               new Uri("http://stuff.co.nz"),
-               new Uri("http://microsoft.com"),
-               new Uri("http://seznam.cz"),
+            Urls = new List<string> {
+               "http://google.com",
+               "http://jobview.monster.com",
+               "http://stuff.co.nz",
+               "http://microsoft.com",
+               "http://seznam.cz",
             };
 
             Nested = new List<DummyEntity>();
@@ -53,9 +53,9 @@ namespace DatabaseQueue.Tests
 
         public DateTime Date { get; set; }
 
-        public IList<Uri> Urls { get; set; }
+        public List<string> Urls { get; set; }
         
-        public ICollection<DummyEntity> Nested { get; set; }
+        public List<DummyEntity> Nested { get; set; }
 
         public override bool Equals(object obj)
         {
