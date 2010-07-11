@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace DatabaseQueue
 {
@@ -9,32 +8,32 @@ namespace DatabaseQueue
 
         public bool TrySerialize(T target, out object serialized)
         {
+            serialized = default(T);
+
             try
             {
                 serialized = JsonConvert.SerializeObject(target);
 
-                return true;
+                return serialized != null;
             }
-            catch (Exception ex)
+            catch
             {
-                serialized = null;
-
                 return false;
             }
         }
 
         public bool TryDeserialize(object value, out T deserialized)
         {
+            deserialized = default(T);
+
             try
             {
                 deserialized = JsonConvert.DeserializeObject<T>(value.ToString());
 
-                return true;
+                return deserialized != null;
             }
             catch
             {
-                deserialized = default(T);
-
                 return false;
             }
         }

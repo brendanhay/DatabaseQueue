@@ -11,7 +11,7 @@ namespace DatabaseQueue.Tests
 
         public static DummyEntity Create()
         {
-            return new DummyEntity();
+            return new DummyEntity(true);
         }
 
         public static ICollection<DummyEntity> CreateCollection()
@@ -26,10 +26,13 @@ namespace DatabaseQueue.Tests
 
         #endregion
 
-        public DummyEntity() : this(true) { }
+        internal DummyEntity() : this(false) { }
 
-        private DummyEntity(bool nested)
+        public DummyEntity(bool defaults)
         {
+            if (!defaults)
+                return;
+
             Text = "Taumatawhakatangihangakoauauotamateapokaiwhenuakitanatahu";
             Number = int.MaxValue;
             Date = DateTime.UtcNow;
@@ -40,27 +43,22 @@ namespace DatabaseQueue.Tests
                new Uri("http://microsoft.com"),
                new Uri("http://seznam.cz"),
             };
-            
-            //if (!nested)
-            //    return;
 
-            Nested = new List<DummyEntity>(); //Enumerable.Range(1, 10).Select(i => new DummyEntity(false)).ToList();
+            Nested = new List<DummyEntity>();
         }
 
-        public string Text { get; private set; }
+        public string Text { get; set; }
 
-        public int Number { get; private set; }
+        public int Number { get; set; }
 
-        public DateTime Date { get; private set; }
+        public DateTime Date { get; set; }
 
-        public IList<Uri> Urls { get; private set; }
+        public IList<Uri> Urls { get; set; }
         
-        public ICollection<DummyEntity> Nested { get; private set; }
+        public ICollection<DummyEntity> Nested { get; set; }
 
         public override bool Equals(object obj)
         {
-            return false;
-
             var other = obj as DummyEntity;
 
             if (other == null)
@@ -68,7 +66,7 @@ namespace DatabaseQueue.Tests
 
             return Text == other.Text
                 && Number == other.Number
-                && Date == other.Date
+                && Date.ToShortTimeString() == other.Date.ToShortTimeString()
                 && Urls.SequenceEqual(other.Urls);
         }
     }

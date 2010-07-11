@@ -1,12 +1,18 @@
 ﻿using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 
 namespace DatabaseQueue
 {
-    public class BinarySerializer<T> : ISerializer<T>
+    public class XmlSerializer<T> : ISerializer<T>
     {
-        private readonly IFormatter _formatter = new BinaryFormatter();
+        private readonly XmlSerializer _serializer;
+
+        public XmlSerializer() : this(new XmlSerializer(typeof(T))) { }
+
+        public XmlSerializer(XmlSerializer serializer)
+        {
+            _serializer = serializer;
+        }
 
         #region ISerializer<T> Members
 
@@ -18,13 +24,12 @@ namespace DatabaseQueue
             {
                 using (var stream = new MemoryStream())
                 {
-                    _formatter.Serialize(stream, target);
+                    _serializer.Serialize(stream, target);
 
-                    var bytes = new byte[stream.Length];
                     stream.Position = 0;
-                    stream.Read(bytes, 0, bytes.Length);
 
-                    serialized = bytes;
+                    using (var reader = new StreamReader(stream))
+                        serialized = reader.ReadToEnd();
                 }
 
                 return true;
@@ -41,12 +46,8 @@ namespace DatabaseQueue
 
             try
             {
-                using (var stream = new MemoryStream((byte[]) value))
-                {
-                    stream.Position = 0;
-
-                    deserialized = (T)_formatter.Deserialize(stream);
-                }
+                using (var reader = new StringReader(value.ToString()))
+                    deserialized = (T)_serializer.Deserialize(reader);
 
                 return deserialized != null;
             }

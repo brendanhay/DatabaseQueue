@@ -23,7 +23,7 @@ namespace DatabaseQueue.Tests
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            _schema = StorageSchema.Binary();
+            _schema = StorageSchema.Json();
             _serializer = new JsonSerializer<DummyEntity>();
 
             var path = GetFilePath(context, "SerializationTests.queue");
@@ -131,7 +131,7 @@ namespace DatabaseQueue.Tests
         [TestMethod]
         public void SqliteQueue_TryEnqueueMultiple_IsSucessful()
         {
-            Assert.IsTrue(_queue.TryEnqueueMultiple(_items, 0));
+            Assert.IsTrue(_queue.TryEnqueueMultiple(_items));
         }
 
         [TestMethod]
@@ -139,15 +139,15 @@ namespace DatabaseQueue.Tests
         {
             ICollection<DummyEntity> items;
 
-            Assert.IsTrue(_queue.TryEnqueueMultiple(_items, 0));
-            Assert.IsTrue(_queue.TryDequeueMultiple(out items, int.MaxValue, 0));
-            Assert.IsFalse(_queue.TryDequeueMultiple(out items, int.MaxValue, 0));
+            Assert.IsTrue(_queue.TryEnqueueMultiple(_items));
+            Assert.IsTrue(_queue.TryDequeueMultiple(out items, int.MaxValue));
+            Assert.IsFalse(_queue.TryDequeueMultiple(out items, int.MaxValue));
         }
 
         [TestMethod]
         public void SqliteQueue_TryEnqueueMultiple_NullItems_IsFailure()
         {
-            Assert.IsFalse(_queue.TryEnqueueMultiple(null, 0));
+            Assert.IsFalse(_queue.TryEnqueueMultiple(null));
         }
 
         [TestMethod]
@@ -155,7 +155,7 @@ namespace DatabaseQueue.Tests
         {
             ICollection<DummyEntity> items;
 
-            Assert.IsFalse(_queue.TryDequeueMultiple(out items, 0, 0));
+            Assert.IsFalse(_queue.TryDequeueMultiple(out items, 0));
             Assert.IsTrue(items.IsNullOrEmpty());
         }
     }

@@ -23,9 +23,9 @@ namespace DatabaseQueue.Benchmark
             const int iterations = 5;
 
             BenchmarkSerializer("Binary Serializer", binarySerializer, 
-                serialized => ((byte[])serialized), iterations);
+                serialized => ((byte[])serialized), DummyEntity.Create, iterations);
             BenchmarkSerializer("Json Serializer", jsonSerializer,
-                serialized => Encoding.UTF8.GetBytes(serialized.ToString()), iterations);
+                serialized => Encoding.UTF8.GetBytes(serialized.ToString()), DummyEntity.Create, iterations);
 
             BenchmarkQueue("Binary Queue", binaryQueue, () => DummyEntity.CreateCollection(1000), iterations);
             BenchmarkQueue("Json Queue", jsonQueue, () => DummyEntity.CreateCollection(1000), iterations);
@@ -41,7 +41,7 @@ namespace DatabaseQueue.Benchmark
         }
 
         private static void BenchmarkSerializer<T>(string name, ISerializer<T> serializer, 
-            Func<object, byte[]> size, int iterations) where T : new()
+            Func<object, byte[]> size, Func<T> factory, int iterations)
         {
             var watch = new Stopwatch();
             var serialization = new List<long>(iterations);
@@ -56,7 +56,7 @@ namespace DatabaseQueue.Benchmark
                 watch.Reset();
                 watch.Start();
 
-                if (!serializer.TrySerialize(new T(), out serialized))
+                if (!serializer.TrySerialize(factory(), out serialized))
                     Debug.Assert(false);
 
                 watch.Stop();
@@ -109,7 +109,7 @@ namespace DatabaseQueue.Benchmark
                 watch.Reset();
                 watch.Start();
 
-                if (!queue.TryEnqueueMultiple(collection, 0))
+                if (!queue.TryEnqueueMultiple(collection))
                     Debug.Assert(false);
 
                 watch.Stop();
@@ -121,7 +121,7 @@ namespace DatabaseQueue.Benchmark
 
                 ICollection<T> items;
 
-                if (!queue.TryDequeueMultiple(out items, collection.Count, 0))
+                if (!queue.TryDequeueMultiple(out items, collection.Count))
                     Debug.Assert(false);
 
                 watch.Stop();
