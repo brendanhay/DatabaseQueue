@@ -8,10 +8,10 @@ namespace DatabaseQueue
     public class BlockingQueue<T> : IQueue<T>, IDisposable
     {
         private readonly IQueue<T> _queue;
-        private readonly int _capacity, 
+        private readonly int _capacity,
             _timeout;
 
-        private long _enqueued = long.MinValue, 
+        private long _enqueued = long.MinValue,
             _dequeued = long.MinValue;
 
         public BlockingQueue(IQueue<T> queue, int capacity, int timeout)
@@ -27,7 +27,7 @@ namespace DatabaseQueue
         private bool TryEnqueueMultiple(ICollection<T> items, Func<bool> timer)
         {
             var count = items.Count;
-            
+
             do
             {
                 var enqueued = _enqueued;
@@ -43,7 +43,7 @@ namespace DatabaseQueue
                     continue;
 
                 if (!_queue.TryEnqueueMultiple(items))
-                    throw new InvalidOperationException("The underlying collection didn't accept the item.");
+                    Debug.Assert(false, "Underlying queue failed to accept the items");
 
                 return true;
 
@@ -69,7 +69,10 @@ namespace DatabaseQueue
                 if (Interlocked.CompareExchange(ref _dequeued, dequeued + min, dequeued) != dequeued)
                     continue;
 
-                return _queue.TryDequeueMultiple(out items, max);
+                if (!_queue.TryDequeueMultiple(out items, max))
+                    Debug.Assert(false, "Underlying queue failed to dequeue items");
+
+                return items.Count > 0;
 
             } while (timer != null && timer());
 
