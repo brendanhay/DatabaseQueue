@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests

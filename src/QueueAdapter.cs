@@ -37,7 +37,7 @@ namespace DatabaseQueue
             }
             catch (InvalidOperationException)
             {
-                
+                // Empty Queue
             }
 
             return items.Count > 0;

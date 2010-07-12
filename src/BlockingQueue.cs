@@ -35,9 +35,7 @@ namespace DatabaseQueue
 
                 if (_capacity != -1)
                 {
-                    var used = enqueued - dequeued;
-
-                    if (count > (_capacity - used))
+                    if (count > (_capacity - (enqueued - dequeued)))
                         continue;
                 }
 
@@ -67,7 +65,9 @@ namespace DatabaseQueue
                 if (dequeued == enqueued)
                     continue;
 
-                if (Interlocked.CompareExchange(ref _dequeued, dequeued + 1, dequeued) != dequeued)
+                var min = Math.Min((enqueued - dequeued), max);
+
+                if (Interlocked.CompareExchange(ref _dequeued, dequeued + min, dequeued) != dequeued)
                     continue;
 
                 return _queue.TryDequeueMultiple(out items, max);
@@ -111,5 +111,4 @@ namespace DatabaseQueue
 
         #endregion
     }
-
 }

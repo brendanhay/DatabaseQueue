@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DatabaseQueue.Tests
 {
@@ -33,18 +34,11 @@ namespace DatabaseQueue.Tests
             if (!defaults)
                 return;
 
-            Text = "Taumatawhakatangihangakoauauotamateapokaiwhenuakitanatahu";
+            Text = Data.RandomString(250);
             Number = int.MaxValue;
             Date = DateTime.UtcNow;
-            Urls = new List<string> {
-               "http://google.com",
-               "http://jobview.monster.com",
-               "http://stuff.co.nz",
-               "http://microsoft.com",
-               "http://seznam.cz",
-            };
-
-            Nested = new List<Entity>();
+            Urls = Enumerable.Range(0, 5).Select(i => Data.RandomString(20)).ToList();
+            Empty = new List<Entity>();
         }
 
         public string Text { get; set; }
@@ -55,7 +49,7 @@ namespace DatabaseQueue.Tests
 
         public List<string> Urls { get; set; }
         
-        public List<Entity> Nested { get; set; }
+        public List<Entity> Empty { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -67,7 +61,8 @@ namespace DatabaseQueue.Tests
             return Text == other.Text
                 && Number == other.Number
                 && Date.ToShortTimeString() == other.Date.ToShortTimeString()
-                && Urls.SequenceEqual(other.Urls);
+                && Urls.SequenceEqual(other.Urls)
+                && Empty.SequenceEqual(other.Empty);
         }
     }
 }
