@@ -38,12 +38,12 @@ namespace DatabaseQueue.Benchmark
                 { "BinarySqlCompactQueue", SqlCompactQueue.CreateBinaryQueue<Entity>("BinarySqlCompactQueue.sdf") },
                 { "XmlSqlCompactQueue", SqlCompactQueue.CreateXmlQueue<Entity>("XmlSqlCompactQueue.sdf") },
                 { "JsonSqlCompactQueue", SqlCompactQueue.CreateJsonQueue<Entity>("JsonSqlCompactQueue.sdf") },
-                { "JsonBerkeleyQueue", new BerkeleyQueue<Entity>("D:\\proj\\app\\DatabaseQueue\\bin\\JsonBerkeleyQueue.db", new JsonSerializer<Entity>()) }
+                { "JsonBerkeleyQueue", new BerkeleyQueue<Entity>("JsonBerkeleyQueue.db", new JsonSerializer<Entity>()) }
             };
 
             foreach (var pair in queues)
             {
-                BenchmarkQueue(pair.Key, pair.Value, () => Entity.CreateCollection(10), ITERATIONS);
+                BenchmarkQueue(pair.Key, pair.Value, () => Entity.CreateCollection(100), ITERATIONS);
 
                 Thread.Sleep(250);
             }
