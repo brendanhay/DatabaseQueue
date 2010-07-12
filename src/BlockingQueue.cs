@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace DatabaseQueue
 {
-    public class BlockingQueue<T> : IQueue<T>, IDisposable
+    public class BlockingQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
         private readonly int _capacity,
@@ -100,15 +100,6 @@ namespace DatabaseQueue
             var watch = Stopwatch.StartNew();
 
             return TryDequeueMultiple(out items, max, () => watch.ElapsedMilliseconds < _timeout);
-        }
-
-        #endregion
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
         }
 
         #endregion
