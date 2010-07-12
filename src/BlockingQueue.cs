@@ -52,7 +52,6 @@ namespace DatabaseQueue
             return false;
         }
 
-        // TODO: Fix this decrementing fuckup
         private bool TryDequeueMultiple(out ICollection<T> items, int max, Func<bool> timer)
         {
             items = default(ICollection<T>);
