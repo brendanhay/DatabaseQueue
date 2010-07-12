@@ -31,17 +31,19 @@ namespace DatabaseQueue.Benchmark
                 Thread.Sleep(250);
             }
 
-            var queues = new Dictionary<string, IQueue<Entity>> {
-                { "BinaryQueue", SqliteQueue.CreateBinaryQueue<Entity>("BinaryBenchmark.queue") },
-                { "XmlQueue", SqliteQueue.CreateXmlQueue<Entity>("XmlBenchmark.queue") },
-                { "JsonQueue", SqliteQueue.CreateJsonQueue<Entity>("JsonBenchmark.queue") }
+            var queues = new Dictionary<string, IDatabaseQueue<Entity>> {
+                { "BinarySqliteQueue", SqliteQueue.CreateBinaryQueue<Entity>("BinarySqliteQueue.queue") },
+                { "XmlSqliteQueue", SqliteQueue.CreateXmlQueue<Entity>("XmlSqliteQueue.queue") },
+                { "JsonSqliteQueue", SqliteQueue.CreateJsonQueue<Entity>("JsonSqliteQueue.queue") },
+                { "BinarySqlCompactQueue", SqlCompactQueue.CreateBinaryQueue<Entity>("BinarySqlCompactQueue.sdf") },
+                { "XmlSqlCompactQueue", SqlCompactQueue.CreateXmlQueue<Entity>("XmlSqlCompactQueue.sdf") },
+                { "JsonSqlCompactQueue", SqlCompactQueue.CreateJsonQueue<Entity>("JsonSqlCompactQueue.sdf") },
+                { "JsonBerkeleyQueue", new BerkeleyQueue<Entity>("D:\\proj\\app\\DatabaseQueue\\bin\\JsonBerkeleyQueue.db", new JsonSerializer<Entity>()) }
             };
 
             foreach (var pair in queues)
             {
-                var queue = pair.Value as DatabaseQueueBase<Entity>;
-
-                BenchmarkQueue(pair.Key, queue, () => Entity.CreateCollection(1000), ITERATIONS);
+                BenchmarkQueue(pair.Key, pair.Value, () => Entity.CreateCollection(10), ITERATIONS);
 
                 Thread.Sleep(250);
             }
@@ -49,13 +51,13 @@ namespace DatabaseQueue.Benchmark
             Console.WriteLine("Finished{0}", Environment.NewLine);
         }
 
-        private static void BenchmarkSerializer<T>(ISerializer<T> serializer, 
+        private static void BenchmarkSerializer<T>(ISerializer<T> serializer,
             Func<object, byte[]> size, Func<T> factory, int iterations)
         {
             var watch = new Stopwatch();
             var serialization = new List<long>(iterations);
             var deserialization = new List<long>(iterations);
-            
+
             object serialized = null;
             T deserialized;
 
@@ -83,15 +85,15 @@ namespace DatabaseQueue.Benchmark
             }
 
             WriteTitle(serializer.GetType().Name);
-            
+
             WriteAverages("Serialization", serialization);
             WriteAverages("Deserialization", deserialization);
-            
+
             WriteMeasurement("Entity Size", size(serialized).LongLength, "bytes");
             Console.WriteLine();
         }
 
-        private static void BenchmarkQueue<T>(string name, DatabaseQueueBase<T> queue, 
+        private static void BenchmarkQueue<T>(string name, IDatabaseQueue<T> queue,
             Func<ICollection<T>> factory, int iterations)
         {
             var watch = new Stopwatch();
@@ -159,13 +161,13 @@ namespace DatabaseQueue.Benchmark
 
         private static void WriteTitle(string name, int? itemCount)
         {
-            Console.WriteLine("[{0}] {1} {2}", name, itemCount, 
+            Console.WriteLine("[{0}] {1} {2}", name, itemCount,
                 itemCount.HasValue ? "items" : null);
         }
 
         private static void WriteMeasurement(string method, long measurement, string suffix)
         {
-            Console.WriteLine(" {1}{0}  -> {2} {3}", Environment.NewLine, method, measurement, suffix);   
+            Console.WriteLine(" {1}{0}  -> {2} {3}", Environment.NewLine, method, measurement, suffix);
         }
 
         private static void WriteAverages(string method, IEnumerable<long> events)

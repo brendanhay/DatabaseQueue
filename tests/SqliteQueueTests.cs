@@ -25,7 +25,7 @@ namespace DatabaseQueue.Tests
             _schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
             _serializer = new JsonSerializer<Entity>();
 
-            var path = GetFilePath(context, "SerializationTests.queue");
+            var path = GetFilePath(context, "SqliteQueueTests.queue");
             _queue = new SqliteQueue<Entity>(path, _schema, _serializer);
             _queue.Initialize();
         }

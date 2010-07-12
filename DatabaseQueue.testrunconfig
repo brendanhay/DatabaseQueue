@@ -3,7 +3,7 @@
   <Description>This is a default test run configuration for a local test run.</Description>
   <Timeouts runTimeout="60000" testTimeout="0" />
   <Deployment>
-    <DeploymentItem filename="lib\sqlite3.dll" />
+    <DeploymentItem filename="lib\x86\" />
   </Deployment>
   <Hosts skipUnhostableTests="false" />
   <TestTypeSpecific />

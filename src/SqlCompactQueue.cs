@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using System.Data.SqlServerCe;
+using System.IO;
 using System.Linq;
 
 namespace DatabaseQueue
@@ -10,29 +12,29 @@ namespace DatabaseQueue
     /// <summary>
     /// Some factory method examples of the various queue combinations
     /// </summary>
-    public static class SqliteQueue
-    {   
-        #region Standard 
+    public static class SqlCompactQueue
+    {
+        #region Standard
 
         public static IDatabaseQueue<T> CreateBinaryQueue<T>(string path)
         {
-            var schema = StorageSchema.Create("integer", DbType.Int32, "blob", DbType.Binary);
+            var schema = StorageSchema.Create("int", DbType.Int32, "varbinary(8000)", DbType.Binary);
 
-            return new SqliteQueue<T>(path, schema, new BinarySerializer<T>());
+            return new SqlCompactQueue<T>(path, schema, new BinarySerializer<T>());
         }
 
         public static IDatabaseQueue<T> CreateJsonQueue<T>(string path)
         {
-            var schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
+            var schema = StorageSchema.Create("int", DbType.Int32, "ntext", DbType.String);
 
-            return new SqliteQueue<T>(path, schema, new JsonSerializer<T>());
+            return new SqlCompactQueue<T>(path, schema, new JsonSerializer<T>());
         }
 
         public static IDatabaseQueue<T> CreateXmlQueue<T>(string path)
         {
-            var schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
+            var schema = StorageSchema.Create("int", DbType.Int32, "ntext", DbType.String);
 
-            return new SqliteQueue<T>(path, schema, new XmlSerializer<T>());
+            return new SqlCompactQueue<T>(path, schema, new XmlSerializer<T>());
         }
 
         #endregion
@@ -65,7 +67,7 @@ namespace DatabaseQueue
 
         #region ThreadSafe / Blocking
 
-        public static IQueue<T> CreateThreadSafeBlockingBinaryQueue<T>(string path, int capacity, 
+        public static IQueue<T> CreateThreadSafeBlockingBinaryQueue<T>(string path, int capacity,
             int timeout)
         {
             var queue = CreateBlockingBinaryQueue<T>(path, capacity, timeout);
@@ -94,39 +96,56 @@ namespace DatabaseQueue
 
     #endregion
 
-    public sealed class SqliteQueue<T> : DatabaseQueueBase<T>
+    public sealed class SqlCompactQueue<T> : DatabaseQueueBase<T>
     {
         #region Formats
 
-        private const string CONNECTION = "Data Source={0}",
-            CREATE_TABLE = "CREATE TABLE IF NOT EXISTS {0}({1} {2} primary key autoincrement, {3} {4})",
-            SELECT = "SELECT * FROM {0} LIMIT {1}",
+        private const string CONNECTION = "Data Source=\"{0}\"; Max Database Size=1024; Mode=Exclusive",
+            CREATE_TABLE = "CREATE TABLE [{0}]([{1}] {2} IDENTITY(1,1) NOT NULL, [{3}] {4})",
+            TABLE_EXISTS = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE (TABLE_NAME = '{0}')",
+            SELECT = "SELECT TOP ({1}) * FROM {0}",
             DELETE = "DELETE FROM {0} WHERE {1} = ?",
             INSERT = "INSERT INTO {0}({1}) VALUES(?)",
             COUNT = "SELECT COUNT({0}) FROM {1}";
 
         #endregion
 
-        public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer) 
-            : base(schema,  serializer)
+        private readonly string _connectionString;
+
+        public SqlCompactQueue(string path, IStorageSchema schema, ISerializer<T> serializer)
+            : base(schema, serializer)
         {
+            if (!path.EndsWith(".sdf"))
+                throw new ArgumentException("File path must be an .sdf file", "path");
+
             Path = path;
+            _connectionString = string.Format(CONNECTION, path);
         }
 
         public string Path { get; private set; }
 
         #region DatabaseQueue<T> Members
 
+        public override void Initialize()
+        {
+            var engine = new SqlCeEngine(_connectionString);
+
+            if (!File.Exists(Path))
+                engine.CreateDatabase();
+
+            base.Initialize();
+        }
+
         protected override IDbConnection CreateConnection()
         {
-            return new SQLiteConnection(string.Format(CONNECTION, Path));
+            return new SqlCeConnection(_connectionString);
         }
 
         protected override IDbCommand CreateInsertCommand(out IDbDataParameter valueParameter)
         {
             var commandText = string.Format(INSERT, Schema.Table, Schema.Value);
             var command = CreateCommand(commandText);
-            
+
             valueParameter = command.CreateParameter();
             valueParameter.DbType = Schema.Value.ParameterType;
             command.Parameters.Add(valueParameter);
@@ -162,11 +181,17 @@ namespace DatabaseQueue
 
         protected override void EnsureTableExists()
         {
-            var commandText = string.Format(CREATE_TABLE, Schema.Table,
-                Schema.Key, Schema.Key.SqlType, Schema.Value, Schema.Value.SqlType);
+            using (var exists = CreateCommand(string.Format(TABLE_EXISTS, Schema.Table)))
+            {
+                if ((int)exists.ExecuteScalar() > 0)
+                    return;
 
-            using (var command = CreateCommand(commandText))
-                command.ExecuteNonQuery();
+                var createText = string.Format(CREATE_TABLE, Schema.Table,
+                    Schema.Key, Schema.Key.SqlType, Schema.Value, Schema.Value.SqlType);
+
+                using (var create = CreateCommand(createText))
+                    create.ExecuteNonQuery();
+            }
         }
 
         #endregion

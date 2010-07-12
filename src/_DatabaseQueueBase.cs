@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace DatabaseQueue
 {
-    public abstract class DatabaseQueueBase<T> : IDatabaseQueue<T>
+    public abstract class DatabaseQueueBase<T> : IQueue<T>, IDisposable
     {
         private readonly ISerializer<T> _serializer;
 
@@ -38,10 +38,20 @@ namespace DatabaseQueue
 
         #region Abstract / Virtual Members
 
+        public virtual void Initialize()
+        {
+            Connection = CreateConnection();
+
+            EnsureConnectionIsOpen();
+            EnsureTableExists();
+
+            _count = ExecuteCountCommand();
+        }
+
         protected abstract IDbConnection CreateConnection();
 
-        protected abstract IDbCommand CreateDeleteCommand(out IDbDataParameter keyParameter);
-        protected abstract IDbCommand CreateInsertCommand(out IDbDataParameter valueParameter);
+        protected abstract IDbCommand CreateDeleteCommand(IEnumerable<object> keys);
+        protected abstract IDbCommand CreateInsertCommand(out IDbDataParameter parameter);
         protected abstract IDbCommand CreateSelectCommand(int max);
         protected abstract IDbCommand CreateCountCommand();
 
@@ -60,16 +70,16 @@ namespace DatabaseQueue
         private int ExecuteInsertCommand(IEnumerable<T> items)
         {
             var rows = 0;
-            IDbDataParameter insertParameter;
+            IDbDataParameter parameter;
 
-            using (var command = CreateInsertCommand(out insertParameter))
+            using (var command = CreateInsertCommand(out parameter))
             {
                 foreach (var item in items)
                 {
                     object serialized;
 
                     if (_serializer.TrySerialize(item, out serialized))
-                        insertParameter.Value = serialized;
+                        parameter.Value = serialized;
 
                     if (command.ExecuteNonQuery() != 1) 
                         continue;
@@ -83,33 +93,43 @@ namespace DatabaseQueue
             return rows;
         }
 
-        private void ExecuteSelectAndDeleteCommand(int max, ICollection<T> items)
+        private void ExecuteSelectCommand(int max, ICollection<T> items,  
+            ICollection<object> deletions)
         {
             using (var select = CreateSelectCommand(max))
             {
-                IDbDataParameter deleteParameter;
-
-                using (var delete = CreateDeleteCommand(out deleteParameter))
+                using (var reader = select.ExecuteReader())
                 {
-                    using (var reader = select.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            object key = reader.GetValue(Schema.Key),
-                                value = reader.GetValue(Schema.Value);
+                        object key = reader.GetValue(Schema.Key),
+                            value = reader.GetValue(Schema.Value);
 
-                            T item;
+                        T item;
 
-                            if (!_serializer.TryDeserialize(value, out item))
-                                continue;
+                        if (!_serializer.TryDeserialize(value, out item))
+                            continue;
 
-                            deleteParameter.Value = key;
-                            
-                            if (delete.ExecuteNonQuery() == 1)
-                               items.Add(item);
-                        }
+                        // Mark key for deletion
+                        deletions.Add(key);
+
+                        // Add item to the out collection
+                        items.Add(item);
                     }
                 }
+            }
+        }
+
+        private void ExecuteDeleteCommand(ICollection<object> deletions)
+        {
+            if (deletions.Count <= 0) return;
+
+            using (var delete = CreateDeleteCommand(deletions))
+            {
+                var rows = delete.ExecuteNonQuery();
+
+                if (rows > 0)
+                    Interlocked.Add(ref _count, -rows);
             }
         }
 
@@ -153,7 +173,10 @@ namespace DatabaseQueue
             {
                 try
                 {
-                    ExecuteSelectAndDeleteCommand(max, items);
+                    var deletions = new List<object>();
+
+                    ExecuteSelectCommand(max, items, deletions);
+                    ExecuteDeleteCommand(deletions);
 
                     transaction.Commit();
 
@@ -166,20 +189,6 @@ namespace DatabaseQueue
             }
 
             return success && items.Count > 0;
-        }
-
-        #endregion
-
-        #region IDatabaseQueue<T> Members
-
-        public virtual void Initialize()
-        {
-            Connection = CreateConnection();
-
-            EnsureConnectionIsOpen();
-            EnsureTableExists();
-
-            _count = ExecuteCountCommand();
         }
 
         #endregion
