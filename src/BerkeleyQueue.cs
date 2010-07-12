@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using BerkeleyDB;
 
@@ -18,7 +14,6 @@ namespace DatabaseQueue
         private Sequence _sequence;
 
         public BerkeleyQueue(string path, ISerializer<T> serializer)
-        //: base(schema, serializer)
         {
             if (!path.EndsWith(".db"))
                 throw new ArgumentException("File path must be an .db file", "path");
@@ -75,7 +70,7 @@ namespace DatabaseQueue
                 key = new DatabaseEntry()
             };
 
-            SetEntry(sequenceConfig.key, "ex_csharp_sequence");
+            SetEntry(sequenceConfig.key, "berkeleyqueue");
             sequenceConfig.SetRange(Int64.MinValue, Int64.MaxValue);
 
             _sequence = new Sequence(sequenceConfig);
