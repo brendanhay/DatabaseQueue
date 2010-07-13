@@ -6,6 +6,8 @@ namespace DatabaseQueue.Collections
     {
         int Count { get; }
 
+        bool Synchronized { get; }
+
         bool TryEnqueueMultiple(ICollection<T> items);
 
         bool TryDequeueMultiple(out ICollection<T> items, int max);

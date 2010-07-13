@@ -2,11 +2,11 @@
 
 namespace DatabaseQueue.Collections
 {
-    public class ThreadSafeQueue<T> : IQueue<T>
+    public class SynchronizedQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
 
-        public ThreadSafeQueue(IQueue<T> queue)
+        public SynchronizedQueue(IQueue<T> queue)
         {
             _queue = queue;
         }
@@ -21,6 +21,8 @@ namespace DatabaseQueue.Collections
                     return _queue.Count;
             }
         }
+
+        public bool Synchronized { get { return true; } }
 
         public bool TryEnqueueMultiple(ICollection<T> items)
         {

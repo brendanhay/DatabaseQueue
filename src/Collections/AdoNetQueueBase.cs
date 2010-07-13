@@ -265,6 +265,8 @@ namespace DatabaseQueue.Collections
 
         public int Count { get { return _count; } }
 
+        public bool Synchronized { get { return false; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             return TryInsertMultiple(items);

@@ -105,6 +105,8 @@ namespace DatabaseQueue.Collections
 
         public int Count { get { return _count; } }
 
+        public bool Synchronized { get { return false; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             var transaction = new BerkeleyTransaction(_database, _sequence, _environment);

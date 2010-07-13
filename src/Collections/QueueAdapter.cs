@@ -14,6 +14,8 @@ namespace DatabaseQueue.Collections
 
         #region IQueue<T> Members
 
+        public bool Synchronized { get { return false; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             foreach (var item in items)
