@@ -3,56 +3,61 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
+using DatabaseQueue.Collections;
+using DatabaseQueue.Data;
+using DatabaseQueue.Serialization;
 using DatabaseQueue.Tests;
 
 namespace DatabaseQueue.Benchmark
 {
     internal static class Program
     {
-        private const int ITERATIONS = 5;
+        private const int ITERATIONS = 5, 
+            COLLECTION_SIZE = 1000;
+        
+        private static readonly string _directory = Path.Combine(Environment.CurrentDirectory, 
+            "queue_benchmarks");
 
         public static void Main(string[] args)
         {
+            Clean();
 
             Console.WriteLine("Starting{0}", Environment.NewLine);
 
-            var serializers = new Dictionary<ISerializer<Entity>, Func<object, byte[]>> { 
-                { new BinarySerializer<Entity>(), bytes => ((byte[])bytes) },
-                { new XmlSerializer<Entity>(), xml => Encoding.UTF8.GetBytes(xml.ToString()) },
-                { new JsonSerializer<Entity>(), json => Encoding.UTF8.GetBytes(json.ToString()) }
-            };
+            var formats = Enum.GetValues(typeof(FormatType));
+            var databases = Enum.GetValues(typeof(DatabaseType));
 
-            foreach (var pair in serializers)
+            var serializerFactory = new SerializerFactory<Entity>();
+
+            foreach (FormatType format in formats)
             {
-                BenchmarkSerializer(pair.Key, pair.Value, Entity.Create, ITERATIONS);
-
-                Thread.Sleep(250);
+                var serializer = serializerFactory.Create(format);
+                
+                BenchmarkSerializer(serializer, Entity.Create, ITERATIONS);
             }
 
-            var queues = new Dictionary<string, IDatabaseQueue<Entity>> {
-                { "BinarySqliteQueue", SqliteQueue.CreateBinaryQueue<Entity>("BinarySqliteQueue.queue") },
-                { "XmlSqliteQueue", SqliteQueue.CreateXmlQueue<Entity>("XmlSqliteQueue.queue") },
-                { "JsonSqliteQueue", SqliteQueue.CreateJsonQueue<Entity>("JsonSqliteQueue.queue") },
-                { "BinarySqlCompactQueue", SqlCompactQueue.CreateBinaryQueue<Entity>("BinarySqlCompactQueue.sdf") },
-                { "XmlSqlCompactQueue", SqlCompactQueue.CreateXmlQueue<Entity>("XmlSqlCompactQueue.sdf") },
-                { "JsonSqlCompactQueue", SqlCompactQueue.CreateJsonQueue<Entity>("JsonSqlCompactQueue.sdf") },
-                { "JsonBerkeleyQueue", new BerkeleyQueue<Entity>("JsonBerkeleyQueue.db", new JsonSerializer<Entity>()) }
-            };
+            Thread.Sleep(250);
 
-            foreach (var pair in queues)
+            var queueFactory = new DatabaseQueueFactory<Entity>(serializerFactory);
+
+            foreach (DatabaseType database in databases)
             {
-                BenchmarkQueue(pair.Key, pair.Value, () => Entity.CreateCollection(100), ITERATIONS);
+                foreach (FormatType format in formats)
+                {
+                    var name = database + format.ToString();
+                    var path = name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db");
 
-                Thread.Sleep(250);
+                    BenchmarkQueue(name, queueFactory.Create(path, database, format), 
+                        () => Entity.CreateCollection(COLLECTION_SIZE), ITERATIONS);
+                }
             }
 
             Console.WriteLine("Finished{0}", Environment.NewLine);
         }
 
         private static void BenchmarkSerializer<T>(ISerializer<T> serializer,
-            Func<object, byte[]> size, Func<T> factory, int iterations)
+            Func<T> factory, int iterations)
         {
             var watch = new Stopwatch();
             var serialization = new List<long>(iterations);
@@ -86,10 +91,10 @@ namespace DatabaseQueue.Benchmark
 
             WriteTitle(serializer.GetType().Name);
 
-            WriteAverages("Serialization", serialization);
-            WriteAverages("Deserialization", deserialization);
+            WriteAverages("Serialization", 1, serialization);
+            WriteAverages("Deserialization", 1, deserialization);
 
-            WriteMeasurement("Entity Size", size(serialized).LongLength, "bytes");
+            //WriteMeasurement("Entity Size", size(serialized).LongLength, "bytes");
             Console.WriteLine();
         }
 
@@ -121,7 +126,7 @@ namespace DatabaseQueue.Benchmark
                 watch.Start();
 
                 if (!queue.TryEnqueueMultiple(collection))
-                    Debug.Assert(false);
+                    Debug.Assert(false);    
 
                 watch.Stop();
                 enqueued.Add(watch.ElapsedMilliseconds);
@@ -139,8 +144,10 @@ namespace DatabaseQueue.Benchmark
                 dequeued.Add(watch.ElapsedMilliseconds);
             }
 
-            WriteAverages("Enqueue", enqueued);
-            WriteAverages("Dequeue", dequeued);
+            WriteAverages("Enqueue", collection.Count, enqueued);
+            WriteAverages("Dequeue", collection.Count, dequeued);
+
+            WriteCount(queue.Count);
 
             // Dispose
             watch.Reset();
@@ -152,6 +159,20 @@ namespace DatabaseQueue.Benchmark
 
             WriteMeasurement("Dispose", watch.ElapsedMilliseconds, "ms");
             Console.WriteLine();
+        }
+
+        private static void Clean()
+        {
+            if (Directory.Exists(_directory))
+                Directory.Delete(_directory, true);
+        }
+
+        private static string GetPath(string name)
+        {
+            if (!Directory.Exists(_directory))
+                Directory.CreateDirectory(_directory);
+
+            return Path.Combine(_directory, name);
         }
 
         private static void WriteTitle(string name)
@@ -167,14 +188,27 @@ namespace DatabaseQueue.Benchmark
 
         private static void WriteMeasurement(string method, long measurement, string suffix)
         {
-            Console.WriteLine(" {1}{0}  -> {2} {3}", Environment.NewLine, method, measurement, suffix);
+            Console.WriteLine(" {0,-18} {1} {2}", string.Format("<{0}>", method), measurement, 
+                suffix);
         }
 
-        private static void WriteAverages(string method, IEnumerable<long> events)
+        private static void WriteAverages(string method, int? total, IEnumerable<long> events)
         {
-            Console.WriteLine(" {1}{0}  -> Average: {2} ms{0}  -> Events: {3}",
-                Environment.NewLine, method, events.Average(),
+            var average = Math.Round(events.Average(), 1);
+
+            var formattedAverage = string.Format("Average (ms): {0}", average);
+            var formattedThroughput = total.HasValue
+                ? string.Format("Throughput (per second): {0}",
+                Math.Round((total.Value / average) * 1000, 1)) : null;
+            var formattedEvents = string.Format("Events (ms): {0} ", 
                 string.Join(", ", events.Select(i => i.ToString()).ToArray()));
+            Console.WriteLine(" {0,-18} {1}, {2}, {3}", string.Format("<{0}>", method), 
+                              formattedAverage, formattedThroughput, formattedEvents);
+        }
+
+        private static void WriteCount(int count)
+        {
+            Console.WriteLine(" <Count> {0,-18}", count);
         }
     }
 }

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using DatabaseQueue.Collections;
+using DatabaseQueue.Data;
+using DatabaseQueue.Extensions;
+using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests
@@ -16,17 +20,16 @@ namespace DatabaseQueue.Tests
             = Entity.CreateCollection();
 
         private static SqliteQueue<Entity> _queue;
-        private static IStorageSchema _schema;
+        //private static IStorageSchema _schema;
         private static ISerializer<Entity> _serializer;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            _schema = StorageSchema.Create("integer", DbType.Int32, "text", DbType.String);
-            _serializer = new JsonSerializer<Entity>();
+            var serializerFactory = new SerializerFactory<Entity>();
 
             var path = GetFilePath(context, "SqliteQueueTests.queue");
-            _queue = new SqliteQueue<Entity>(path, _schema, _serializer);
+            _queue = new SqliteQueue<Entity>(path, FormatType.Json, serializerFactory);
             _queue.Initialize();
         }
 
@@ -92,40 +95,40 @@ namespace DatabaseQueue.Tests
             Assert.IsTrue(File.Exists(_queue.Path));
         }
 
-        [TestMethod]
-        public void SqliteQueue_Schema_Table_Exists()
-        {
-            var schema = GetTableSchema(_queue.Path, _schema.Table);
-            var table = string.Format("create table {0}", _schema.Table);
+        //[TestMethod]
+        //public void SqliteQueue_Schema_Table_Exists()
+        //{
+        //    var schema = GetTableSchema(_queue.Path, _schema.Table);
+        //    var table = string.Format("create table {0}", _schema.Table);
 
-            Assert.IsTrue(schema.StartsWith(table, StringComparison.OrdinalIgnoreCase));
-        }
+        //    Assert.IsTrue(schema.StartsWith(table, StringComparison.OrdinalIgnoreCase));
+        //}
 
-        [TestMethod]
-        public void SqliteQueue_Schema_Contains_AutoincrementingIntegerPrimaryKey()
-        {
-            var schema = GetTableSchema(_queue.Path, _schema.Table);
+        //[TestMethod]
+        //public void SqliteQueue_Schema_Contains_AutoincrementingIntegerPrimaryKey()
+        //{
+        //    var schema = GetTableSchema(_queue.Path, _schema.Table);
 
-            Assert.IsTrue(schema.Contains("integer primary key autoincrement"));
-        }
+        //    Assert.IsTrue(schema.Contains("integer primary key autoincrement"));
+        //}
 
-        [TestMethod]
-        public void SqliteQueue_Schema_KeyColumn_Exists_WithCorrectType()
-        {
-            var schema = GetTableSchema(_queue.Path, _schema.Table);
-            var key = string.Format("{0} {1}", _schema.Key, _schema.Key.SqlType);
+        //[TestMethod]
+        //public void SqliteQueue_Schema_KeyColumn_Exists_WithCorrectType()
+        //{
+        //    var schema = GetTableSchema(_queue.Path, _schema.Table);
+        //    var key = string.Format("{0} {1}", _schema.Key, _schema.Key.SqlType);
 
-            Assert.IsTrue(schema.Contains(key));
-        }
+        //    Assert.IsTrue(schema.Contains(key));
+        //}
 
-        [TestMethod]
-        public void SqliteQueue_Schema_ValueColumn_Exists_WithCorrectType()
-        {
-            var schema = GetTableSchema(_queue.Path, _schema.Table);
-            var value = string.Format("{0} {1}", _schema.Value, _schema.Value.SqlType);
+        //[TestMethod]
+        //public void SqliteQueue_Schema_ValueColumn_Exists_WithCorrectType()
+        //{
+        //    var schema = GetTableSchema(_queue.Path, _schema.Table);
+        //    var value = string.Format("{0} {1}", _schema.Value, _schema.Value.SqlType);
 
-            Assert.IsTrue(schema.Contains(value));
-        }
+        //    Assert.IsTrue(schema.Contains(value));
+        //}
 
         [TestMethod]
         public void SqliteQueue_TryEnqueueMultiple_IsSucessful()

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using DatabaseQueue.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests

@@ -90,22 +90,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinarySerializer.cs" />
-    <Compile Include="BlockingQueue.cs" />
-    <Compile Include="BerkeleyQueue.cs" />
-    <Compile Include="IDatabaseQueue.cs" />
-    <Compile Include="QueueAdapter.cs" />
-    <Compile Include="SqlCompactQueue.cs" />
-    <Compile Include="XmlSerializer.cs" />
-    <Compile Include="DatabaseQueueBase.cs" />
-    <Compile Include="IEnumerableExtensions.cs" />
-    <Compile Include="IQueue.cs" />
-    <Compile Include="ISerializer.cs" />
-    <Compile Include="JsonSerializer.cs" />
+    <Compile Include="Collections\BufferedQueue.cs" />
+    <Compile Include="Collections\DatabaseQueueFactory.cs" />
+    <Compile Include="Data\DatabaseType.cs" />
+    <Compile Include="Data\FormatType.cs" />
+    <Compile Include="Data\StorageColumn.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Serialization\BinarySerializer.cs" />
+    <Compile Include="Collections\BlockingQueue.cs" />
+    <Compile Include="Collections\BerkeleyQueue.cs" />
+    <Compile Include="Collections\IDatabaseQueue.cs" />
+    <Compile Include="Collections\QueueAdapter.cs" />
+    <Compile Include="Collections\SqlCompactQueue.cs" />
+    <Compile Include="Serialization\SerializerFactory.cs" />
+    <Compile Include="Serialization\XmlSerializer.cs" />
+    <Compile Include="Collections\AdoNetQueueBase.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Collections\IQueue.cs" />
+    <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\JsonSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqliteQueue.cs" />
-    <Compile Include="StorageSchema.cs" />
-    <Compile Include="ThreadSafeQueue.cs" />
+    <Compile Include="Collections\SqliteQueue.cs" />
+    <Compile Include="Data\StorageSchemaBase.cs" />
+    <Compile Include="Collections\ThreadSafeQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\lib\x86\libdb50.dll">

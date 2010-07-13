@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
 using System.IO;
+using DatabaseQueue.Collections;
+using DatabaseQueue.Data;
+using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests
@@ -16,18 +17,16 @@ namespace DatabaseQueue.Tests
             = Entity.CreateCollection();
 
         private static BerkeleyQueue<Entity> _queue;
-        private static IStorageSchema _schema;
         private static ISerializer<Entity> _serializer;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            _schema = StorageSchema.Create("int", DbType.Int32, "ntext", DbType.String);
             _serializer = new JsonSerializer<Entity>();
 
             //var path = GetFilePath(context, "BerkeleyQueue.db");
             var path = "d:\\proj\\app\\databasequeue\\BerkeleyQueue.db";
-            _queue = new BerkeleyQueue<Entity>(path, _serializer);
+            _queue = new BerkeleyQueue<Entity>(path);
             _queue.Initialize();
         }
 

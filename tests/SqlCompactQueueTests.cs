@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using DatabaseQueue.Collections;
+using DatabaseQueue.Data;
+using DatabaseQueue.Extensions;
+using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests
@@ -16,18 +20,15 @@ namespace DatabaseQueue.Tests
             = Entity.CreateCollection();
 
         private static SqlCompactQueue<Entity> _queue;
-        private static IStorageSchema _schema;
-        private static ISerializer<Entity> _serializer;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            _schema = StorageSchema.Create("int", DbType.Int32, "ntext", DbType.String);
-            _serializer = new JsonSerializer<Entity>();
-
             //var path = GetFilePath(context, "SqlCompactQueue.sdf");
+            var serializerFactory = new SerializerFactory<Entity>();
+
             var path = "d:\\proj\\app\\databasequeue\\SqlCompactQueue.sdf";
-            _queue = new SqlCompactQueue<Entity>(path, _schema, _serializer);
+            _queue = new SqlCompactQueue<Entity>(path, FormatType.Json, serializerFactory);
             _queue.Initialize();
         }
 
