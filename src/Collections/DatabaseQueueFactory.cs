@@ -26,7 +26,7 @@ namespace DatabaseQueue.Collections
                     queue = new SqliteQueue<T>(path, format, _serializerFactory);
                     break;
                 case DatabaseType.Berkeley:
-                    // Currently only supports binary serialization
+                    // Currently only supports json serialization (or shit stored as strings)
                     queue = new BerkeleyQueue<T>(path);
                     break;
                 default:
