@@ -2,6 +2,16 @@
 
 namespace DatabaseQueue.Collections
 {
+    public static class SynchronizedQueue
+    {
+        public static IQueue<T> Synchronize<T>(IQueue<T> queue)
+        {
+            return queue.Synchronized
+                ? queue
+                : new SynchronizedQueue<T>(queue);
+        }
+    }
+
     public class SynchronizedQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
@@ -27,13 +37,13 @@ namespace DatabaseQueue.Collections
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             lock (_queue)
-                return TryEnqueueMultiple(items);
+                return _queue.TryEnqueueMultiple(items);
         }
 
         public bool TryDequeueMultiple(out ICollection<T> items, int max)
         {
             lock (_queue)
-                return TryDequeueMultiple(out items, max);
+                return _queue.TryDequeueMultiple(out items, max);
         }
 
         #endregion

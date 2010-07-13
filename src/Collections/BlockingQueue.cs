@@ -88,6 +88,8 @@ namespace DatabaseQueue.Collections
             get { return _queue.Count; }
         }
 
+        public bool Synchronized { get { return false; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             var watch = Stopwatch.StartNew();

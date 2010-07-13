@@ -9,47 +9,103 @@ namespace DatabaseQueue.Collections
     public class BufferedQueue<T> : IDatabaseQueue<T>
     {
         private readonly Thread _thread;
-        private readonly IDatabaseQueue<T> _overflowQueue;
-        private readonly IQueue<T> _bufferQueue;
-        private readonly int _bufferMax, _bufferMin;
+        
+        private readonly IQueue<T> _overflowQueue, _bufferQueue;
+        private readonly int _ceiling, _floor;
 
-        private long _enqueued = long.MinValue,
-            _dequeued = long.MinValue;
+        //private long _enqueued = long.MinValue,
+        //    _dequeued = long.MinValue;
 
-        /// <summary>
-        /// Occurs when items exceeding _bufferMax are enqueued
-        /// </summary>
-        private AutoResetEvent _overflowEvent = new AutoResetEvent(false);
+        private readonly Action[] _disposables;
+
+        private readonly AutoResetEvent _bufferEnqueued = new AutoResetEvent(false);
 
         /// <summary>
         /// Occurs when the number of items enqueued goes below _bufferMin
         /// </summary>
         private AutoResetEvent _starvationEvent = new AutoResetEvent(false);
 
-        public BufferedQueue(IDatabaseQueue<T> overflowQueue, IQueue<T> bufferQueue, int bufferMax, 
-            int bufferMin)
+        private readonly ManualResetEvent _quitEvent = new ManualResetEvent(false);
+        
+        public BufferedQueue(IDatabaseQueue<T> overflowQueue, IQueue<T> bufferQueue, int ceiling, 
+            int floor) : this(overflowQueue, bufferQueue, floor, ceiling, overflowQueue.Dispose)
         {
+            // Hard start our DatabaseQueue, since it's 
+            // assigned as an IQueue[T] interface 
             overflowQueue.Initialize();
+        }
 
-            _overflowQueue = overflowQueue;
-            _bufferQueue = bufferQueue;
-            _bufferMax = bufferMax;
-            _bufferMin = bufferMin;
-            _enqueued += (bufferQueue.Count + overflowQueue.Count);
-            
+        public BufferedQueue(IQueue<T> overflowQueue, IQueue<T> bufferQueue, int ceiling, int floor)
+            : this(overflowQueue, bufferQueue, floor, ceiling, null) { }
+
+        private BufferedQueue(IQueue<T> overflowQueue, IQueue<T> bufferQueue, int ceiling, 
+            int floor, params Action[] disposables)
+        {
+            // This needs to be synchronized if it's not already as 
+            // it will possibly be accessed by two threads
+            _overflowQueue = SynchronizedQueue.Synchronize(overflowQueue);
+            _bufferQueue = SynchronizedQueue.Synchronize(bufferQueue);
+
+            _ceiling = ceiling;
+            _floor = floor;
+
+            // These will be called later by BufferedQueue.Dispose/0
+            _disposables = disposables;
+
+            // Count the current number of items in the queue, 
+            // to prevent subsequent calls to .Count
+            //_enqueued += (bufferQueue.Count + overflowQueue.Count);
+
+            // Prepare the thread, but don't start it
             _thread = new Thread(DoWork);
         }
 
-        private void DoWork()
-        {
+        public bool IsCompleted { get { return _quitEvent.WaitOne(0, false); } }
 
+        // If stop has been called, we need to flush all to disk
+        public void DoWork()
+        {
+            while (!IsCompleted)
+            {
+                //_bufferEnqueued.WaitOne();
+
+                // Possibly lock from this point?  
+                var count = _bufferQueue.Count;
+
+                var overflow = count - _ceiling;
+                var underrun = count - _floor;
+
+                // Overflow (PASSIVE)
+                if (overflow > 0)
+                {
+                    ICollection<T> items;
+
+                    if (_bufferQueue.TryDequeueMultiple(out items, overflow) && items.Count > 0)
+                        _overflowQueue.TryEnqueueMultiple(items);
+                }
+                // Replenish (PASSIVE)
+                else if (underrun < 0)
+                {
+                    ICollection<T> items;
+
+                    if (_overflowQueue.TryDequeueMultiple(out items, underrun) && items.Count > 0)
+                        _bufferQueue.TryEnqueueMultiple(items);
+                }
+            }
+
+            // Starvation (ACTIVE)
+        }
+
+        public void Stop()
+        {
+            _quitEvent.Set();
         }
 
         #region IDatabaseQueue<T> Members
 
         public void Initialize()
         {
-            //_thread.Start();
+            _thread.Start();
         }
 
         #endregion
@@ -61,53 +117,50 @@ namespace DatabaseQueue.Collections
             get { throw new NotImplementedException(); }
         }
 
+        public bool Synchronized { get { return true; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
-            var count = items.Count;
+            var success = _bufferQueue.TryEnqueueMultiple(items);
 
-            var enqueued = _enqueued;
-            var dequeued = _dequeued;
+            if (success)
+                _bufferEnqueued.Set();
 
-            var difference = (int)(_bufferMax - (enqueued - dequeued));
-
-            if (Interlocked.CompareExchange(ref _enqueued, enqueued + count, enqueued) != enqueued)
-                return false;
-
-            if (count > difference)
-            {
-                return _bufferQueue.TryEnqueueMultiple(items.Take(difference).ToList()) 
-                    && _overflowQueue.TryEnqueueMultiple(items.Skip(difference).ToList());
-            }
-
-            return _bufferQueue.TryEnqueueMultiple(items);
+            return success;
         }
 
         public bool TryDequeueMultiple(out ICollection<T> items, int max)
         {
-            var dequeued = _dequeued;
-            var enqueued = _enqueued;
-            
-            var min = (int)Math.Min((enqueued - dequeued), max);
+            var success = _bufferQueue.TryDequeueMultiple(out items, max);
 
-            if (_bufferQueue.TryDequeueMultiple(out items, min))
+            // Two behaviours:
+
+            // 1) Try dequeue as many from queue as possible, then signal starvation
+            // Pro - fastest, simplest
+            // Con - don't get requested items, even though there may be more than enough
+
+            // 2) Try dequeue as many as possible topping up with overflow items as needed, from this thread
+            // Pro - get maximum available items as not to confuse caller
+            // Con - need to halt other thread's access via locking to the overflow queue
+
+            if (!success)
+                return false;
+
+            var missing = max - items.Count;
+
+            // Check if force replenish is required
+            if (missing > 0)
             {
-                var difference = min - items.Count;
+                ICollection<T> extras;
 
-                if (difference > 0)
+                if (_overflowQueue.TryDequeueMultiple(out extras, missing))
                 {
-                    ICollection<T> extras;
-
-                    if (_overflowQueue.TryDequeueMultiple(out extras, difference))
-                    {
-                        foreach (var extra in extras)
-                            items.Add(extra);
-                    }
+                    foreach (var extra in extras)
+                        items.Add(extra);
                 }
-
-                return Interlocked.CompareExchange(ref _dequeued, dequeued + items.Count, dequeued) == dequeued;
             }
 
-            return false;
+            return items.Count > 0;
         }
 
         #endregion
@@ -116,7 +169,14 @@ namespace DatabaseQueue.Collections
 
         public void Dispose()
         {
-            _overflowQueue.Dispose();
+            Stop();
+
+            _thread.Join();
+
+            foreach (var disposable in _disposables)
+                disposable();
+
+            _bufferEnqueued.Close();
         }
 
         #endregion
