@@ -19,36 +19,26 @@ namespace DatabaseQueue.Collections
             : this(path, new SqlCompactSchema(format), factory.Create(format)) { }
 
         public SqlCompactQueue(string path, IStorageSchema schema, ISerializer<T> serializer)
-            : base(schema, serializer)
+            : base(CreateConnection(path), schema, serializer, true)
         {
             if (!path.EndsWith(".sdf"))
                 throw new ArgumentException("File path must be an .sdf file", "path");
 
             Path = path;
-            CheckTableExists = true;
-            _connectionString = string.Format(CONNECTION, path);
         }
 
         public string Path { get; private set; }
 
-        protected override IDbConnection CreateConnection()
+        private static IDbConnection CreateConnection(string path)
         {
-            return new SqlCeConnection(_connectionString);
-        }
+            var connectionString = string.Format(CONNECTION, path);
+            var engine = new SqlCeEngine(connectionString);
 
-        #region DatabaseQueue<T> Members
-
-        public override void Initialize()
-        {
-            var engine = new SqlCeEngine(_connectionString);
-
-            if (!File.Exists(Path))
+            if (!File.Exists(path))
                 engine.CreateDatabase();
 
-            base.Initialize();
+            return new SqlCeConnection(connectionString);
         }
-
-        #endregion
 
         #region Schema
 

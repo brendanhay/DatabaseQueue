@@ -26,8 +26,7 @@ namespace DatabaseQueue.Tests
 
             //var path = GetFilePath(context, "BerkeleyQueue.db");
             var path = "d:\\proj\\app\\databasequeue\\BerkeleyQueue.db";
-            _queue = new BerkeleyQueue<Entity>(path);
-            _queue.Initialize();
+            _queue = new BerkeleyQueue<Entity>(path, _serializer);
         }
 
         public TestContext TestContext { get; set; }

@@ -11,47 +11,54 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// An ADO.NET base class implementation of IDatabaseQueue[T]
     /// </summary>
-    public abstract class AdoNetQueueBase<T> : IDatabaseQueue<T>
+    public abstract class AdoNetQueueBase<T> : IQueue<T>
     {
+        private readonly IDbConnection _connection;
         private readonly ISerializer<T> _serializer;
 
-        private int _disposed;
-        private int _count;
-
-        protected AdoNetQueueBase(IStorageSchema schema, ISerializer<T> serializer)
-        {
-            Schema = schema;
-            _serializer = serializer;
-        }
+        private int _disposed, _count;
 
         /// <summary>
+        /// Base class for queues which store items in an ADO.NET Database
+        /// </summary>
+        /// <param name="connection">Open or closed connection which will be used for all commands</param>
+        /// <param name="schema">Schema defining the table, names and Db/Sql types for parameters</param>
+        /// <param name="serializer">Serializer used to serialize/deserialize objects into Db types</param>
+        /// <param name="checkTableExists">
         /// If true, a seperate round trip to the database using GetTableExistsCommandText/0 
         /// is made before deciding to call GetCreateTableCommandText based on the result.
-        /// Default: false
-        /// </summary>
-        protected bool CheckTableExists { get; set; }
+        /// </param>
+        protected AdoNetQueueBase(IDbConnection connection, IStorageSchema schema, 
+            ISerializer<T> serializer, bool checkTableExists)
+        {
+            _connection = connection;
+            _serializer = serializer;
+            Schema = schema;
 
-        protected IDbConnection Connection { get; private set; }
+            EnsureConnectionIsOpen();
+            EnsureTableExists(checkTableExists);
+            _count = ExecuteCountCommand();
+        }
 
         protected IStorageSchema Schema { get; private set; }
 
         private void EnsureConnectionIsOpen()
         {
-            if (Connection == null)
+            if (_connection == null)
                 throw new NullReferenceException("Ensure a call to Initialize/0 is made before using the queue");
 
-            switch (Connection.State)
+            switch (_connection.State)
             {
                 case ConnectionState.Closed:
                 case ConnectionState.Broken:
-                    Connection.Open();
+                    _connection.Open();
                     break;
             }
         }
 
-        private void EnsureTableExists()
+        private void EnsureTableExists(bool checkTableExists)
         {
-            if (CheckTableExists)
+            if (checkTableExists)
             {
                 using (var exists = CreateCommand(Schema.TableExistsCommandText))
                 {
@@ -65,12 +72,6 @@ namespace DatabaseQueue.Collections
             using (var create = CreateCommand(createText))
                 create.ExecuteNonQuery();
         }
-
-        #region Abstract / Virtual Members
-
-        protected abstract IDbConnection CreateConnection();
-
-        #endregion
 
         #region Command Creation
 
@@ -114,7 +115,7 @@ namespace DatabaseQueue.Collections
 
         private IDbCommand CreateCommand(string commandText)
         {
-            var command = Connection.CreateCommand();
+            var command = _connection.CreateCommand();
             command.CommandText = commandText;
 
             return command;
@@ -197,7 +198,7 @@ namespace DatabaseQueue.Collections
 
             var rows = 0;
 
-            using (var transaction = Connection.BeginTransaction())
+            using (var transaction = _connection.BeginTransaction())
             {
                 try
                 {
@@ -224,7 +225,7 @@ namespace DatabaseQueue.Collections
 
             EnsureConnectionIsOpen();
 
-            using (var transaction = Connection.BeginTransaction())
+            using (var transaction = _connection.BeginTransaction())
             {
                 try
                 {
@@ -247,25 +248,13 @@ namespace DatabaseQueue.Collections
 
         #endregion
 
-        #region IDatabaseQueue<T> Members
-
-        public virtual void Initialize()
-        {
-            Connection = CreateConnection();
-
-            EnsureConnectionIsOpen();
-            EnsureTableExists();
-
-            _count = ExecuteCountCommand();
-        }
-
-        #endregion
-
         #region IQueue<T> Members
 
         public int Count { get { return _count; } }
 
         public bool Synchronized { get { return false; } }
+
+        public object SyncRoot { get { return this; } }
 
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
@@ -295,7 +284,7 @@ namespace DatabaseQueue.Collections
             if (disposing)
             {
                 // Dispose managed resources
-                Connection.Close();
+                _connection.Close();
             }
 
             // Dispose unmanaged resources

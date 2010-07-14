@@ -84,6 +84,7 @@
     <Compile Include="BlockingQueueTests.cs" />
     <Compile Include="BerkeleyDbQueueTests.cs" />
     <Compile Include="BufferedQueueTests.cs" />
+    <Compile Include="MockFactory.cs" />
     <Compile Include="SqlCompactQueueTests.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="XmlSerializerTests.cs" />

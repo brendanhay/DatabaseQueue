@@ -5,21 +5,19 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace DatabaseQueue.Serialization
 {
-    public class BinarySerializer<T> : ISerializer<T>
+    public class BinarySerializer<T> : SerializerBase<T, byte[]>
     {
         private readonly IFormatter _formatter = new BinaryFormatter();
 
-        #region ISerializer<T> Members
-
-        public bool TrySerialize(T target, out object serialized)
+        public override bool TrySerialize(T item, out byte[] serialized)
         {
-            serialized = default(T);
+            serialized = default(byte[]);
 
             try
             {
                 using (var stream = new MemoryStream())
                 {
-                    _formatter.Serialize(stream, target);
+                    _formatter.Serialize(stream, item);
 
                     var bytes = new byte[stream.Length];
                     stream.Position = 0;
@@ -36,27 +34,25 @@ namespace DatabaseQueue.Serialization
             }
         }
 
-        public bool TryDeserialize(object value, out T deserialized)
+        public override bool TryDeserialize(byte[] serialized, out T item)
         {
-            deserialized = default(T);
+            item = default(T);
 
             try
             {
-                using (var stream = new MemoryStream((byte[])value))
+                using (var stream = new MemoryStream(serialized))
                 {
                     stream.Position = 0;
 
-                    deserialized = (T)_formatter.Deserialize(stream);
+                    item = (T)_formatter.Deserialize(stream);
                 }
 
-                return deserialized != null;
+                return item != null;
             }
             catch (Exception ex)
             {
                 return false;
             }
         }
-
-        #endregion
     }
 }

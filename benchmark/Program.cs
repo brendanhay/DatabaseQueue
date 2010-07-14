@@ -48,7 +48,10 @@ namespace DatabaseQueue.Benchmark
                     var name = database + format.ToString();
                     var path = name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db");
 
-                    BenchmarkQueue(name, queueFactory.Create(path, database, format), 
+                    var closureFormat = format;
+                    var closureDatabase = database;
+
+                    BenchmarkQueue(name, () => queueFactory.Create(path, closureDatabase, closureFormat), 
                         () => Entity.CreateCollection(COLLECTION_SIZE), ITERATIONS);
                 }
             }
@@ -98,22 +101,21 @@ namespace DatabaseQueue.Benchmark
             Console.WriteLine();
         }
 
-        private static void BenchmarkQueue<T>(string name, IDatabaseQueue<T> queue,
-            Func<ICollection<T>> factory, int iterations)
+        private static void BenchmarkQueue<T>(string name, Func<IQueue<T>> queueFactory,
+            Func<ICollection<T>> collectionFactory, int iterations)
         {
             var watch = new Stopwatch();
             var enqueued = new List<long>(iterations);
             var dequeued = new List<long>(iterations);
 
-            // Queue Initialization
-            var collection = factory();
-
+            var collection = collectionFactory();
             WriteTitle(name, collection.Count);
 
             watch.Reset();
             watch.Start();
 
-            queue.Initialize();
+            // Queue Initialization
+            var queue = queueFactory();
 
             watch.Stop();
 
@@ -182,7 +184,7 @@ namespace DatabaseQueue.Benchmark
 
         private static void WriteTitle(string name, int? itemCount)
         {
-            Console.WriteLine("[{0}] {1} {2}", name, itemCount,
+            Console.WriteLine("{0,-19} {1} {2}", name, itemCount,
                 itemCount.HasValue ? "items" : null);
         }
 

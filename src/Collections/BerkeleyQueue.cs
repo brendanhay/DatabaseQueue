@@ -3,45 +3,29 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using BerkeleyDB;
+using DatabaseQueue.Data;
 using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    public sealed class BerkeleyQueue<T> : IDatabaseQueue<T>
+    public sealed class BerkeleyQueue<T> : IQueue<T>
     {
         private readonly ISerializer<T> _serializer;
 
         private DatabaseEnvironment _environment;
-        private BTreeDatabase _database;
-        private Sequence _sequence;
+        private readonly BTreeDatabase _database;
+        private readonly Sequence _sequence;
 
         private int _count;
 
-        public BerkeleyQueue(string path)
-        //public BerkeleyQueue(string path, ISerializer<T> serializer)
+        public BerkeleyQueue(string path, FormatType format, ISerializerFactory<T> serializerFactory)
+            : this(path, serializerFactory.Create(format)) { }
+  
+        public BerkeleyQueue(string path, ISerializer<T> serializer)
         {
-            _serializer = new JsonSerializer<T>();//serializer;
+            _serializer = serializer;
             Path = path;
-        }
 
-        public string Path { get; private set; }
-
-        private static void SetEntry(DatabaseEntry entry, string str)
-        {
-            entry.Data = Encoding.ASCII.GetBytes(str);
-        }
-
-        private static string GetEntry(DatabaseEntry entry)
-        {
-            var decode = new ASCIIEncoding();
-
-            return decode.GetString(entry.Data);
-        }
-
-        #region IDatabaseQueue<T> Members
-
-        public void Initialize()
-        {
             var cacheInfo = new CacheInfo(0, 131072, 1);
 
             /* Currently environtment + transactions is producing 2000 ms+ inserts 
@@ -62,7 +46,8 @@ namespace DatabaseQueue.Collections
              * 
              */
 
-            var databaseConfig = new BTreeDatabaseConfig {
+            var databaseConfig = new BTreeDatabaseConfig
+            {
                 Creation = CreatePolicy.IF_NEEDED,
                 //Env = _environment, 
                 CacheSize = cacheInfo,
@@ -70,7 +55,8 @@ namespace DatabaseQueue.Collections
 
             _database = BTreeDatabase.Open(Path, databaseConfig);
 
-            var sequenceConfig = new SequenceConfig {
+            var sequenceConfig = new SequenceConfig
+            {
                 BackingDatabase = _database,
                 Creation = CreatePolicy.IF_NEEDED,
                 Increment = true,
@@ -86,7 +72,28 @@ namespace DatabaseQueue.Collections
             _count = (int)_database.Stats().nData - 1;
         }
 
-        #endregion
+        public string Path { get; private set; }
+
+        private static void SetEntry(DatabaseEntry entry, object obj)
+        {
+            byte[] bytes;
+
+            if (obj is string)
+                bytes = Encoding.UTF8.GetBytes((string)obj);
+            else if (obj is byte[])
+                bytes = (byte[])obj;
+            else
+                throw new ArgumentException("Serialized objects other than byte[] or string are not supported");
+
+            entry.Data = bytes;
+        }
+
+        private static string GetEntry(DatabaseEntry entry)
+        {
+            var decode = new ASCIIEncoding();
+
+            return decode.GetString(entry.Data);
+        }
 
         #region IDisposable Members
 
@@ -107,6 +114,8 @@ namespace DatabaseQueue.Collections
 
         public bool Synchronized { get { return false; } }
 
+        public object SyncRoot { get { return this; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             var transaction = new BerkeleyTransaction(_database, _sequence, _environment);
@@ -124,7 +133,7 @@ namespace DatabaseQueue.Collections
                     var value = new DatabaseEntry();
 
                     SetEntry(key, transaction.GetSequence().ToString());
-                    SetEntry(value, serialized.ToString());
+                    SetEntry(value, serialized);
 
                     transaction.Put(key, value);
 

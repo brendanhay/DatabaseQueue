@@ -14,16 +14,16 @@ namespace DatabaseQueue.Collections
             : this(path, new SqliteSchema(format), factory.Create(format)) { }
 
         public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer) 
-            : base(schema,  serializer)
+            : base(CreateConnection(path), schema,  serializer, false)
         {
             Path = path;
         }
 
         public string Path { get; private set; }
     
-        protected override IDbConnection CreateConnection()
+        private static IDbConnection CreateConnection(string path)
         {
-            return new SQLiteConnection(string.Format(CONNECTION, Path));
+            return new SQLiteConnection(string.Format(CONNECTION, path));
         }
 
         #region Schema

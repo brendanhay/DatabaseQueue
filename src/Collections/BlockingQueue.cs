@@ -8,11 +8,13 @@ namespace DatabaseQueue.Collections
     public class BlockingQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
-        private readonly int _capacity,
-            _timeout;
+        private readonly int _capacity, _timeout;
 
-        private long _enqueued = long.MinValue,
+        private long _enqueued = long.MinValue, 
             _dequeued = long.MinValue;
+
+        public BlockingQueue(int capacity, int timeout) 
+            : this(new QueueAdapter<T>(), capacity, timeout) { }
 
         public BlockingQueue(IQueue<T> queue, int capacity, int timeout)
         {
@@ -90,6 +92,8 @@ namespace DatabaseQueue.Collections
 
         public bool Synchronized { get { return false; } }
 
+        public object SyncRoot { get { return _queue.SyncRoot; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             var watch = Stopwatch.StartNew();
@@ -102,6 +106,15 @@ namespace DatabaseQueue.Collections
             var watch = Stopwatch.StartNew();
 
             return TryDequeueMultiple(out items, max, () => watch.ElapsedMilliseconds < _timeout);
+        }
+
+        #endregion
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            _queue.Dispose();
         }
 
         #endregion

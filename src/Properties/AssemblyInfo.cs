@@ -33,3 +33,6 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyFileVersion("1.0.*")]
+
+// Make the internals visible to UnitTests
+[assembly: InternalsVisibleTo("DatabaseQueue.Tests")]

@@ -29,7 +29,6 @@ namespace DatabaseQueue.Tests
 
             var path = "d:\\proj\\app\\databasequeue\\SqlCompactQueue.sdf";
             _queue = new SqlCompactQueue<Entity>(path, FormatType.Json, serializerFactory);
-            _queue.Initialize();
         }
 
         public TestContext TestContext { get; set; }

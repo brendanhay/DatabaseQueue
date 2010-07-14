@@ -92,7 +92,6 @@
   <ItemGroup>
     <Compile Include="Collections\BufferedQueue.cs" />
     <Compile Include="Collections\DatabaseQueueFactory.cs" />
-    <Compile Include="Collections\IDatabaseQueue.cs" />
     <Compile Include="Data\DatabaseType.cs" />
     <Compile Include="Data\FormatType.cs" />
     <Compile Include="Data\StorageColumn.cs" />
@@ -102,6 +101,7 @@
     <Compile Include="Collections\BerkeleyQueue.cs" />
     <Compile Include="Collections\QueueAdapter.cs" />
     <Compile Include="Collections\SqlCompactQueue.cs" />
+    <Compile Include="Serialization\SerializerBase.cs" />
     <Compile Include="Serialization\SerializerFactory.cs" />
     <Compile Include="Serialization\XmlSerializer.cs" />
     <Compile Include="Collections\AdoNetQueueBase.cs" />

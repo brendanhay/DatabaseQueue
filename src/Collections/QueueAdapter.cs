@@ -16,6 +16,8 @@ namespace DatabaseQueue.Collections
 
         public bool Synchronized { get { return false; } }
 
+        public object SyncRoot { get { return this; } }
+
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
             foreach (var item in items)
@@ -37,13 +39,17 @@ namespace DatabaseQueue.Collections
                     items.Add(item);
                 }
             }
-            catch (InvalidOperationException)
-            {
-                // Empty Queue
-            }
+            // Empty Queue
+            catch (InvalidOperationException) { }
 
             return items.Count > 0;
         }
+
+        #endregion
+
+        #region IDisposable Members
+
+        public void Dispose() { }
 
         #endregion
     }

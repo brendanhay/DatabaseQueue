@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
+﻿using System;
+using System.Collections.Generic;
 using DatabaseQueue.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -8,54 +7,98 @@ using Moq;
 namespace DatabaseQueue.Tests
 {
     [TestClass]
-    public class BufferedQueueTests
+    public class BufferedQueueTests : MockFactory
     {
-        private const int CEILING = 10,
-            FLOOR = 5;
+        private readonly int _ceiling = Data.Random(30, 80), 
+            _floor = Data.Random(1, 20);
 
-        private static readonly ICollection<Entity> _items
-            = Entity.CreateCollection(100);
-
+        private IQueue<Entity> _buffer;
         private BufferedQueue<Entity> _queue;
-
-        private Mock<IQueue<Entity>> _bufferMock, 
-            _overflowMock;
-
-        private IQueue<Entity> _buffer,
-            _overflow;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            _bufferMock = CreateIQueueMock();
-            _overflowMock = CreateIQueueMock();
-            _buffer = new QueueAdapter<Entity>();
-            _overflow = new QueueAdapter<Entity>();
+            QueueMock = CreateIQueueMock();
 
-            _queue = new BufferedQueue<Entity>(_overflow, _buffer, 
-                CEILING, FLOOR);
-            //_queue.Initialize();
+            _buffer = new QueueAdapter<Entity>();
+            // Pass autoStart: false to prevent the internal thread starting up for our tests
+            _queue = new BufferedQueue<Entity>(QueueMock.Object, _buffer, _floor, _ceiling, false);
         }
 
-        private static Mock<IQueue<Entity>> CreateIQueueMock()
+        private void ExecuteDoWorkOnce()
         {
-            ICollection<Entity> items = new List<Entity>();
-
-            var queueMock = new Mock<IQueue<Entity>>();
-            queueMock.Setup(mock => mock.TryDequeueMultiple(out items, It.IsAny<int>()))
-                .Returns(true)
-                .Callback(() => queueMock.Setup(mock => mock.Count).Returns(items.Count));
-
-            return queueMock;
+            _queue.Stop();
+            _queue.DoWork();
         }
 
         [TestMethod]
-        public void BufferedQueue_TryEnqueueMultiple_ExceedingBuffer_Overflow_TryEnqueueMultiple_GetsCalled()
+        [ExpectedException(typeof(ArgumentException))]
+        public void BufferedQueue_FloorGreaterThanOrEqualToCeiling_Ctor_Throws_ArgumentException()
         {
-            Assert.IsTrue(_queue.TryEnqueueMultiple(_items));
-            _queue.Stop();
-            _queue.DoWork();
+            new BufferedQueue<Entity>(CreateIQueueMock().Object, CreateIQueueMock().Object, 6, 5, false);
 
+            Assert.Fail("Expected ArgumentException was not thrown");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void BufferedQueue_SameQueueAsBufferAndOverflow_Ctor_Throws_ArgumentException()
+        {
+            new BufferedQueue<Entity>(QueueMock.Object, QueueMock.Object, _floor, _ceiling, false);
+
+            Assert.Fail("Expected ArgumentException was not thrown");
+        }
+
+        [TestMethod]
+        public void BufferedQueue_Dispose_Calls_InternalQueues_Dispose()
+        {
+            var bufferMock = CreateIQueueMock();
+            var queue = new BufferedQueue<Entity>(QueueMock.Object, bufferMock.Object, _floor,
+                _ceiling, false);
+
+            queue.Dispose();
+
+            QueueMock.Verify(mock => mock.Dispose(), "Failed to call overflow.Dispose");
+            bufferMock.Verify(mock => mock.Dispose(), "Failed to call buffer.Dispose");
+        }
+
+        [TestMethod]
+        public void BufferedQueue_FullBuffer_Stop_Calls_Overflow_TryEnqueueMultiple_All()
+        {
+            // Enqueue directly into the buffer reference, to avoid setting an enqueued event
+            Assert.IsTrue(_buffer.TryEnqueueMultiple(Items), "Failed to enqueue items in buffer");
+
+            ExecuteDoWorkOnce();
+
+            QueueMock.Verify(mock => mock.TryEnqueueMultiple(It.Is<ICollection<Entity>>(c => c.Count == Items.Count)),
+                Times.Once(), string.Format("Failed to call overflow.TryEnqueueMultiple"));
+        }
+
+        [TestMethod]
+        public void BufferedQueue_EmptyBuffer_TryDequeueMultiple_Calls_Overflow_TryDequeueMultiple()
+        {
+            ICollection<Entity> items;
+
+            Assert.IsTrue(_queue.Count == 0, "queue.Count was expected to be 0");
+            Assert.IsFalse(_queue.TryDequeueMultiple(out items, 100), 
+                "Successfully dequeued items from queue");
+
+            ExecuteDoWorkOnce();
+
+            QueueMock.Verify(mock => mock.TryDequeueMultiple(out items, _floor), 
+                Times.Once(), string.Format("Failed to call buffer.TryDequeueMultiple {0}", _floor));
+        }
+
+        [TestMethod]
+        public void BufferedQueue_FullBuffer_TryEnqueueMultiple_Calls_Overflow_TryEnqueueMultiple()
+        {
+            Assert.IsTrue(_queue.TryEnqueueMultiple(Items), "Failed to enqueue items in buffer");
+
+            ExecuteDoWorkOnce();
+
+            // Once for overflow, once for stop
+            QueueMock.Verify(mock => mock.TryEnqueueMultiple(It.IsAny<ICollection<Entity>>()), 
+                Times.Exactly(2), "Failed to call overflow.TryEnqueueMultiple");
         }
     }
 }

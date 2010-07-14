@@ -30,7 +30,6 @@ namespace DatabaseQueue.Tests
 
             var path = GetFilePath(context, "SqliteQueueTests.queue");
             _queue = new SqliteQueue<Entity>(path, FormatType.Json, serializerFactory);
-            _queue.Initialize();
         }
 
         public TestContext TestContext { get; set; }

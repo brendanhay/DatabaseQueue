@@ -3,17 +3,15 @@ using Newtonsoft.Json;
 
 namespace DatabaseQueue.Serialization
 {
-    public class JsonSerializer<T> : ISerializer<T>
+    public class JsonSerializer<T> : SerializerBase<T, string>
     {
-        #region ISerializer<T> Members
-
-        public bool TrySerialize(T target, out object serialized)
+        public override bool TrySerialize(T item, out string serialized)
         {
-            serialized = default(T);
+            serialized = default(string);
 
             try
             {
-                serialized = JsonConvert.SerializeObject(target);
+                serialized = JsonConvert.SerializeObject(item);
 
                 return serialized != null;
             }
@@ -23,22 +21,20 @@ namespace DatabaseQueue.Serialization
             }
         }
 
-        public bool TryDeserialize(object value, out T deserialized)
+        public override bool TryDeserialize(string serialized, out T item)
         {
-            deserialized = default(T);
+            item = default(T);
 
             try
             {
-                deserialized = JsonConvert.DeserializeObject<T>(value.ToString());
+                item = JsonConvert.DeserializeObject<T>(serialized);
 
-                return deserialized != null;
+                return item != null;
             }
             catch (Exception ex)
             {
                 return false;
             }
         }
-
-        #endregion
     }
 }

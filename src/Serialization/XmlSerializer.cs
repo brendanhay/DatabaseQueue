@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 
 namespace DatabaseQueue.Serialization
 {
-    public class XmlSerializer<T> : ISerializer<T>
+    public class XmlSerializer<T> : SerializerBase<T, string>
     {
         private readonly XmlSerializer _serializer;
 
@@ -15,17 +15,15 @@ namespace DatabaseQueue.Serialization
             _serializer = serializer;
         }
 
-        #region ISerializer<T> Members
-
-        public bool TrySerialize(T target, out object serialized)
+        public override bool TrySerialize(T item, out string serialized)
         {
-            serialized = default(T);
+            serialized = default(string);
 
             try
             {
                 using (var stream = new MemoryStream())
                 {
-                    _serializer.Serialize(stream, target);
+                    _serializer.Serialize(stream, item);
 
                     stream.Position = 0;
 
@@ -41,23 +39,21 @@ namespace DatabaseQueue.Serialization
             }
         }
 
-        public bool TryDeserialize(object value, out T deserialized)
+        public override bool TryDeserialize(string serialized, out T item)
         {
-            deserialized = default(T);
+            item = default(T);
 
             try
             {
-                using (var reader = new StringReader(value.ToString()))
-                    deserialized = (T)_serializer.Deserialize(reader);
+                using (var reader = new StringReader(serialized))
+                    item = (T)_serializer.Deserialize(reader);
 
-                return deserialized != null;
+                return item != null;
             }
             catch (Exception ex)
             {
                 return false;
             }
         }
-
-        #endregion
     }
 }

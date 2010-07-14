@@ -13,9 +13,9 @@ namespace DatabaseQueue.Collections
             _serializerFactory = serializerFactory;
         }
 
-        public IDatabaseQueue<T> Create(string path, DatabaseType database, FormatType format)
+        public IQueue<T> Create(string path, DatabaseType database, FormatType format)
         {
-            IDatabaseQueue<T> queue;
+            IQueue<T> queue;
 
             switch (database)
             {
@@ -27,7 +27,7 @@ namespace DatabaseQueue.Collections
                     break;
                 case DatabaseType.Berkeley:
                     // Currently only supports json serialization (or shit stored as strings)
-                    queue = new BerkeleyQueue<T>(path);
+                    queue = new BerkeleyQueue<T>(path, format, _serializerFactory);
                     break;
                 default:
                     throw new NotSupportedException("The DatabaseType you specified is not supported");

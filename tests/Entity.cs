@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace DatabaseQueue.Tests
 {
@@ -15,12 +14,12 @@ namespace DatabaseQueue.Tests
             return new Entity(true);
         }
 
-        public static List<Entity> CreateCollection()
+        public static ICollection<Entity> CreateCollection()
         {
             return CreateCollection(10);
         }
 
-        public static List<Entity> CreateCollection(int count)
+        public static ICollection<Entity> CreateCollection(int count)
         {
             return Enumerable.Range(1, count).Select(i => Create()).ToList();
         }
