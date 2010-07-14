@@ -15,13 +15,13 @@ namespace DatabaseQueue.Tests
         [TestMethod]
         public void JsonSerializer_TrySerialize_DummyEntity_IsTrue()
         {
-            AssertTrySerializeIsTrue(Entity);
+            Assert_TrySerialize_IsTrue(Entity);
         }
 
         [TestMethod]
         public void JsonSerializer_TrySerialize_TryDeserialize_DummyEntity_AreEqual()
         {
-            AssertSerializeThenDeserializeAreEqual(Entity);
+            Assert_Serialize_Then_Deserialize_AreEqual(Entity);
         }
     }
 }

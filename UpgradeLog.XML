@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="DatabaseQueue">
+</Property><Property Name="Solution File" Value="D:\proj\app\DatabaseQueue\DatabaseQueue.sln">
+</Property><Property Name="Date" Value="Wednesday, July 14, 2010">
+</Property><Property Name="Time" Value="19:43 PM">
+</Property></Properties><Event ErrorLevel="0" Project="DatabaseQueue" Source="src\DatabaseQueue.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="DatabaseQueue" Source="src\DatabaseQueue.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="DatabaseQueue.Tests" Source="tests\DatabaseQueue.Tests.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="DatabaseQueue.Tests" Source="tests\DatabaseQueue.Tests.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="DatabaseQueue.Benchmark" Source="benchmark\DatabaseQueue.Benchmark.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="DatabaseQueue.Benchmark" Source="benchmark\DatabaseQueue.Benchmark.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="DatabaseQueue.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="DatabaseQueue.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="DatabaseQueue" Source="src\DatabaseQueue.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="3" Project="" Source="DatabaseQueue.testrunconfig" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="DatabaseQueue.testrunconfig" Description="The file was converted to the current format.">
+</Event><Event ErrorLevel="3" Project="" Source="DatabaseQueue.vsmdi" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="DatabaseQueue.vsmdi" Description="The file was converted to the current format.">
+</Event><Event ErrorLevel="0" Project="DatabaseQueue.Tests" Source="tests\DatabaseQueue.Tests.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="DatabaseQueue.Benchmark" Source="benchmark\DatabaseQueue.Benchmark.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>

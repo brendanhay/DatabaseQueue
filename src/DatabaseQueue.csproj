@@ -119,7 +119,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Serialization\BinarySerializer.cs" />
     <Compile Include="Collections\BlockingQueue.cs" />
-    <Compile Include="Collections\BerkeleyQueue.cs" />
+    <Compile Include="Collections\BerkeleyDbQueue.cs" />
     <Compile Include="Collections\QueueAdapter.cs" />
     <Compile Include="Collections\SqlCompactQueue.cs" />
     <Compile Include="Serialization\SerializerBase.cs" />

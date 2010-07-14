@@ -87,15 +87,16 @@
   <ItemGroup>
     <Compile Include="BinarySerializerTests.cs" />
     <Compile Include="BlockingQueueTests.cs" />
-    <Compile Include="BerkeleyDbQueueTests.cs" />
-    <Compile Include="BufferedQueueTests.cs" />
+    <Compile Include="Collections\BerkeleyDbQueueTests.cs" />
+    <Compile Include="Collections\BufferedQueueTests.cs" />
     <Compile Include="MockFactory.cs" />
-    <Compile Include="SqlCompactQueueTests.cs" />
+    <Compile Include="Collections\QueueTestBase.cs" />
+    <Compile Include="Collections\SqlCompactQueueTests.cs" />
     <Compile Include="XmlSerializerTests.cs" />
     <Compile Include="JsonSerializerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializerTestBase.cs" />
-    <Compile Include="SqliteQueueTests.cs" />
+    <Compile Include="Collections\SqliteQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\DatabaseQueue.csproj">

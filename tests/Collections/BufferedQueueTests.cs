@@ -4,10 +4,10 @@ using DatabaseQueue.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace DatabaseQueue.Tests
+namespace DatabaseQueue.Tests.Collections
 {
     [TestClass]
-    public class BufferedQueueTests : MockFactory
+    public class BufferedQueueTests : QueueTestBase
     {
         private readonly int _ceiling = RandomHelper.GetInt32(30, 80), 
             _floor = RandomHelper.GetInt32(1, 20);
@@ -99,6 +99,30 @@ namespace DatabaseQueue.Tests
             // Once for overflow, once for stop
             QueueMock.Verify(mock => mock.TryEnqueueMultiple(It.IsAny<ICollection<Entity>>()), 
                 Times.Exactly(2), "Failed to call overflow.TryEnqueueMultiple");
+        }
+
+        [TestMethod]
+        public void BufferedQueue_TryEnqueueMultiple_IsTrue()
+        {
+            Assert_TryEnqueueMultiple_IsTrue(_queue);
+        }
+
+        [TestMethod]
+        public void BufferedQueue_TryEnqueueMultiple_NullItems_IsFalse()
+        {
+            Assert_TryEnqueueMultiple_NullItems_IsFalse(_queue);
+        }
+
+        [TestMethod]
+        public void BufferedQueue_TryDequeueMultiple_IsTrue()
+        {
+            Assert_TryDequeueMultiple_IsTrue(_queue);
+        }
+
+        [TestMethod]
+        public void BufferedQueue_TryDequeueMultiple_0Max_IsFalse()
+        {
+            Assert_TryDequeueMultiple_0Max_IsFalse(_queue);
         }
     }
 }

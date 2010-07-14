@@ -20,6 +20,9 @@ namespace DatabaseQueue.Collections
 
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
+            if (items == null || items.Count < 1)
+                return false;
+
             foreach (var item in items)
                 Enqueue(item);
 

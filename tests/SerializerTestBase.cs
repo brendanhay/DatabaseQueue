@@ -17,7 +17,7 @@ namespace DatabaseQueue.Tests
 
         #region Assertions
 
-        protected object AssertTrySerializeIsTrue(Entity entity)
+        protected object Assert_TrySerialize_IsTrue(Entity entity)
         {
             object serialized;
 
@@ -27,7 +27,7 @@ namespace DatabaseQueue.Tests
             return serialized;
         }
 
-        protected Entity AssertTryDeserializeIsTrue(object serialized)
+        protected Entity Assert_TryDeserialize_IsTrue(object serialized)
         {
             Entity deserialized;
 
@@ -37,10 +37,10 @@ namespace DatabaseQueue.Tests
             return deserialized;
         }
 
-        protected void AssertSerializeThenDeserializeAreEqual(Entity entity)
+        protected void Assert_Serialize_Then_Deserialize_AreEqual(Entity entity)
         {
-            var serialized = AssertTrySerializeIsTrue(entity);
-            var deserialized = AssertTryDeserializeIsTrue(serialized);
+            var serialized = Assert_TrySerialize_IsTrue(entity);
+            var deserialized = Assert_TryDeserialize_IsTrue(serialized);
 
             Assert.AreEqual(entity, deserialized);
         }

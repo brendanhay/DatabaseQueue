@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using DatabaseQueue.Collections;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace DatabaseQueue.Tests
@@ -31,6 +33,15 @@ namespace DatabaseQueue.Tests
             queueMock.SetupGet(mock => mock.SyncRoot).Returns(queueMock.Object);
 
             return queueMock;
+        }
+
+        #endregion
+
+        #region Static Helpers
+
+        public static string GetFilePath(TestContext context, string fileName)
+        {
+            return Path.Combine(context.TestDeploymentDir, fileName);
         }
 
         #endregion
