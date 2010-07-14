@@ -9,8 +9,8 @@ namespace DatabaseQueue.Tests
     [TestClass]
     public class BufferedQueueTests : MockFactory
     {
-        private readonly int _ceiling = Data.Random(30, 80), 
-            _floor = Data.Random(1, 20);
+        private readonly int _ceiling = RandomHelper.GetInt32(30, 80), 
+            _floor = RandomHelper.GetInt32(1, 20);
 
         private IQueue<Entity> _buffer;
         private BufferedQueue<Entity> _queue;

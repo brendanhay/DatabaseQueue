@@ -3,11 +3,11 @@ using System.Text;
 
 namespace DatabaseQueue.Tests
 {
-    public static class Data
+    public static class RandomHelper
     {
         private static readonly Random _random = new Random((int)DateTime.Now.Ticks);
 
-        public static string RandomString(int size)
+        public static string GetString(int size)
         {
             var builder = new StringBuilder();
 
@@ -21,7 +21,7 @@ namespace DatabaseQueue.Tests
             return builder.ToString();
         }
 
-        public static int Random(int min, int max)
+        public static int GetInt32(int min, int max)
         {
             return _random.Next(min, max);
         }

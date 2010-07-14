@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace DatabaseQueue.Tests
 {
+    /// <summary>
+    /// Test entity used by the benchmarker and unit tests
+    /// </summary>
     [Serializable]
     public class Entity
     {
@@ -33,10 +36,10 @@ namespace DatabaseQueue.Tests
             if (!defaults)
                 return;
 
-            Text = Data.RandomString(250);
+            Text = RandomHelper.GetString(250);
             Number = int.MaxValue;
             Date = DateTime.UtcNow;
-            Urls = Enumerable.Range(0, 5).Select(i => Data.RandomString(20)).ToList();
+            Urls = Enumerable.Range(0, 5).Select(i => RandomHelper.GetString(20)).ToList();
             Empty = new List<Entity>();
         }
 
