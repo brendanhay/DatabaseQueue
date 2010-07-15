@@ -3,11 +3,32 @@
     public abstract class SerializerBase<T, TSerialized> : ISerializer<T, TSerialized> 
         where TSerialized : class
     {
-        #region ISerializer<T,TSerialized> Members
+        private readonly ISerializer<T> _inner;
 
-        public abstract bool TrySerialize(T item, out TSerialized serialized);
+        protected SerializerBase(ISerializer<T> inner)
+        {
+            _inner = inner;
+        }
 
-        public abstract bool TryDeserialize(TSerialized serialized, out T item);
+        protected abstract bool TrySerialize(T item, out TSerialized serialized);
+       
+        protected abstract bool TryDeserialize(TSerialized serialized, out T item);
+
+        #region ISerializer Members
+
+        // TODO: Random ideas
+
+        bool ISerializer.TrySerialize(object item, out object serialized)
+        {
+            var preserialized;
+
+            _inner.TrySerialize(item, out preserialized) && ISerializer.TrySerializer(preserialized, out serialized);
+        }
+
+        bool ISerializer.TryDeserialize(object serialized, out object item)
+        {
+            throw new System.NotImplementedException();
+        }
 
         #endregion
 
@@ -15,10 +36,10 @@
 
         bool ISerializer<T>.TrySerialize(T item, out object serialized)
         {
-            TSerialized str;
-            var success = TrySerialize(item, out str);
+            TSerialized generic;
+            var success = TrySerialize(item, out generic);
 
-            serialized = str;
+            serialized = generic;
 
             return success;
         }
@@ -29,6 +50,20 @@
             var cast = serialized as TSerialized;
 
             return (cast != null) && TryDeserialize(cast, out item);
+        }
+
+        #endregion
+
+        #region ISerializer<T,TSerialized> Members
+
+        bool ISerializer<T, TSerialized>.TrySerialize(T item, out TSerialized serialized)
+        {
+            
+        }
+
+        bool ISerializer<T, TSerialized>.TryDeserialize(TSerialized serialized, out T item)
+        {
+
         }
 
         #endregion

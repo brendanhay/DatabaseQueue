@@ -27,7 +27,7 @@ namespace DatabaseQueue.Collections
                     break;
                 case DatabaseType.Berkeley:
                     // Currently only supports json serialization (or shit stored as strings)
-                    queue = new BerkeleyDbQueue<T>(path, format, _serializerFactory);
+                    queue = new BerkeleyDbQueue<T>(path, new BinarySerializer<T>());
                     break;
                 default:
                     throw new NotSupportedException("The DatabaseType you specified is not supported");

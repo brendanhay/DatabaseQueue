@@ -8,6 +8,14 @@ namespace DatabaseQueue.Serialization
     public class BinarySerializer<T> : SerializerBase<T, byte[]>
     {
         private readonly IFormatter _formatter = new BinaryFormatter();
+        private readonly ISerializer<T> _inner;
+
+        public BinarySerializer() : this(null) { }
+
+        public BinarySerializer(ISerializer<T> serializer)
+        {
+            _inner = serializer;
+        }
 
         public override bool TrySerialize(T item, out byte[] serialized)
         {

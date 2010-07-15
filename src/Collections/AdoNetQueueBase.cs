@@ -206,9 +206,11 @@ namespace DatabaseQueue.Collections
 
                     transaction.Commit();
                 }
-                catch (InvalidOperationException)
+                catch (Exception ex)
                 {
                     transaction.Rollback();
+
+                    return false;
                 }
             }
 

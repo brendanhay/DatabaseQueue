@@ -1,31 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using BerkeleyDB;
-using DatabaseQueue.Data;
 using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
     public sealed class BerkeleyDbQueue<T> : IQueue<T>
     {
-        private readonly ISerializer<T> _serializer;
+        private readonly ISerializer<T, byte[]> _serializer;
         private readonly RecnoDatabase _database;
         
         private int _count;
 
-        public BerkeleyDbQueue(string path, FormatType format, ISerializerFactory<T> serializerFactory)
-            : this(path, serializerFactory.Create(format)) { }
+        public BerkeleyDbQueue(string path) : this(path, new BinarySerializer<T>()) { }
 
-        public BerkeleyDbQueue(string path, ISerializer<T> serializer)
+        public BerkeleyDbQueue(string path, ISerializer<T, byte[]> serializer)
         {
             _serializer = serializer;
             Path = path;
 
             var databaseConfig = new RecnoDatabaseConfig { 
                 Creation = CreatePolicy.IF_NEEDED,
-                CacheSize = new CacheInfo(0, 131072, 1)
+                CacheSize = new CacheInfo(0, 131072, 1),
+                Renumber = false
             };
 
             _database = RecnoDatabase.Open(path, databaseConfig);
@@ -33,27 +31,6 @@ namespace DatabaseQueue.Collections
         }
 
         public string Path { get; private set; }
-
-        private static byte[] GetBytes(object obj)
-        {
-            byte[] bytes;
-
-            if (obj is string)
-                bytes = Encoding.UTF8.GetBytes((string)obj);
-            else if (obj is byte[])
-                bytes = (byte[])obj;
-            else
-                throw new ArgumentException("Serialized objects other than byte[] or string are not supported");
-
-            return bytes;
-        }
-
-        private static string GetEntry(DatabaseEntry entry)
-        {
-            var decode = new ASCIIEncoding();
-
-            return decode.GetString(entry.Data);
-        }
 
         #region IDisposable Members
 
@@ -78,12 +55,12 @@ namespace DatabaseQueue.Collections
             {
                 foreach (var item in items)
                 {
-                    object serialized;
+                    byte[] serialized;
 
                     if (!_serializer.TrySerialize(item, out serialized))
                         continue;
 
-                    var value = new DatabaseEntry(GetBytes(serialized));
+                    var value = new DatabaseEntry(serialized);
 
                     _database.Append(value);
 
@@ -104,27 +81,36 @@ namespace DatabaseQueue.Collections
         {
             items = new List<T>();
 
-            using (var cursor = _database.Cursor())
+            try
             {
-                for (var i = 0; i < max; i++)
+                using (var cursor = _database.Cursor())
                 {
-                    if (!cursor.MoveNext())
-                        break;
+                    for (var i = 0; i < max; i++)
+                    {
+                        if (!cursor.MoveNext())
+                            break;
 
-                    var value = GetEntry(cursor.Current.Value);
+                        var value = cursor.Current.Value.Data;
 
-                    T deserialized;
-                    
-                    if (_serializer.TryDeserialize(value, out deserialized))
-                        items.Add(deserialized);
+                        T deserialized;
 
-                    cursor.Delete();
+                        if (_serializer.TryDeserialize(value, out deserialized))
+                            items.Add(deserialized);
 
-                    Interlocked.Decrement(ref _count);
+                        cursor.Delete();
+
+                        Interlocked.Decrement(ref _count);
+                    }
                 }
+
+                return items.Count > 0;
+            }
+            catch (Exception ex)
+            {
+
             }
 
-            return items.Count > 0;
+            return false;
         }
 
         #endregion

@@ -14,7 +14,7 @@ namespace DatabaseQueue.Benchmark
     internal static class Program
     {
         private const int ITERATIONS = 5, 
-            COLLECTION_SIZE = 1000;
+            COLLECTION_SIZE = 10000;
         
         private static readonly string _directory = Path.Combine(Environment.CurrentDirectory, 
             "queue_benchmarks");
@@ -46,7 +46,7 @@ namespace DatabaseQueue.Benchmark
                 foreach (FormatType format in formats)
                 {
                     var name = database + format.ToString();
-                    var path = name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db");
+                    var path = GetPath(name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db"));
 
                     var closureFormat = format;
                     var closureDatabase = database;

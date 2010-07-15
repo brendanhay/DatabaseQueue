@@ -14,7 +14,7 @@ namespace DatabaseQueue.Tests.Collections
         {
             var path = GetFilePath(context, "BerkeleyDbQueue.db");
 
-            _queue = new BerkeleyDbQueue<Entity>(path, new JsonSerializer<Entity>());
+            _queue = new BerkeleyDbQueue<Entity>(path, new BinarySerializer<Entity>());
         }
 
         [TestMethod]
