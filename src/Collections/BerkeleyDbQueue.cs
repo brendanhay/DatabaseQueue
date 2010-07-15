@@ -11,11 +11,8 @@ namespace DatabaseQueue.Collections
     public sealed class BerkeleyDbQueue<T> : IQueue<T>
     {
         private readonly ISerializer<T> _serializer;
-
-        private readonly QueueDatabase _database;
-        private readonly Sequence _sequence;
-
-        private DatabaseEnvironment _environment;
+        private readonly RecnoDatabase _database;
+        
         private int _count;
 
         public BerkeleyDbQueue(string path, FormatType format, ISerializerFactory<T> serializerFactory)
@@ -26,58 +23,18 @@ namespace DatabaseQueue.Collections
             _serializer = serializer;
             Path = path;
 
-            var cacheInfo = new CacheInfo(0, 131072, 1);
-            //var environmentConfig = new DatabaseEnvironmentConfig {
-            //    Create = true,
-            //    AutoCommit = false,
-            //    UseLogging = false,
-            //    UseMPool = true,
-            //    UseTxns = false,
-            //    Private = true,
-            //};
-
-            //_environment = DatabaseEnvironment.Open(Environment.CurrentDirectory, environmentConfig);
-            //_environment.CacheSize = cacheInfo;
-
-            var databaseConfig = new QueueDatabaseConfig { 
+            var databaseConfig = new RecnoDatabaseConfig { 
                 Creation = CreatePolicy.IF_NEEDED,
-                //Env = _environment,
-                Length = 1024,
-                PageSize = 32768,
-                PadByte = 0x20,
+                CacheSize = new CacheInfo(0, 131072, 1)
             };
-            
-            try
-            {
-                _database = QueueDatabase.Open("c:\\" + path, databaseConfig);
-            }
-            catch (DatabaseException)
-            {
-                QueueDatabase.Remove(path);
 
-                _database = QueueDatabase.Open(path, databaseConfig);
-            }
-
-            //var sequenceConfig = new SequenceConfig
-            //{
-            //    BackingDatabase = _database,
-            //    Creation = CreatePolicy.IF_NEEDED,
-            //    Increment = true,
-            //    InitialValue = Int64.MaxValue,
-            //    Wrap = true,
-            //    key = new DatabaseEntry()
-            //};
-
-            //SetEntry(sequenceConfig.key, "berkeleyqueue");
-            //sequenceConfig.SetRange(Int64.MinValue, Int64.MaxValue);
-
-            //_sequence = new Sequence(sequenceConfig);
-            _count = (int)_database.Stats().nData - 1;
+            _database = RecnoDatabase.Open("c:\\" + path, databaseConfig);
+            _count = (int)_database.Stats().nData;
         }
 
         public string Path { get; private set; }
 
-        private static void SetEntry(DatabaseEntry entry, object obj)
+        private static byte[] GetBytes(object obj)
         {
             byte[] bytes;
 
@@ -88,7 +45,7 @@ namespace DatabaseQueue.Collections
             else
                 throw new ArgumentException("Serialized objects other than byte[] or string are not supported");
 
-            entry.Data = bytes;
+            return bytes;
         }
 
         private static string GetEntry(DatabaseEntry entry)
@@ -102,11 +59,7 @@ namespace DatabaseQueue.Collections
 
         public void Dispose()
         {
-           // _sequence.Close();
             _database.Close();
-
-            if (_environment != null)
-                _environment.Close();
         }
 
         #endregion
@@ -121,8 +74,6 @@ namespace DatabaseQueue.Collections
 
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
-            var transaction = new BerkeleyTransaction(_database, _sequence, _environment);
-
             try
             {
                 foreach (var item in items)
@@ -132,29 +83,21 @@ namespace DatabaseQueue.Collections
                     if (!_serializer.TrySerialize(item, out serialized))
                         continue;
 
-                    var key = new DatabaseEntry();
-                    var value = new DatabaseEntry();
+                    var value = new DatabaseEntry(GetBytes(serialized));
 
-                   // SetEntry(key, transaction.GetSequence().ToString());
-                    SetEntry(key, DateTime.UtcNow.Ticks.ToString());
-                    SetEntry(value, serialized);
-
-                    transaction.Put(key, value);
+                    _database.Append(value);
 
                     Interlocked.Increment(ref _count);
                 }
-
-                transaction.Commit();
 
                 return true;
             }
             catch (Exception ex)
             {
-                transaction.Discard();
+
             }
 
             return false;
-
         }
 
         public bool TryDequeueMultiple(out ICollection<T> items, int max)
@@ -163,74 +106,25 @@ namespace DatabaseQueue.Collections
 
             using (var cursor = _database.Cursor())
             {
-                T deserialized;
-
-                /* Walk through the database and print out key/data pairs. */
                 for (var i = 0; i < max; i++)
                 {
                     if (!cursor.MoveNext())
-                        break;
+                        continue;
 
-                    var key = cursor.Current.Key;
-                    var value = cursor.Current.Value;
+                    var value = GetEntry(cursor.Current.Value);
 
-                    if (_serializer.TryDeserialize(GetEntry(value), out deserialized))
+                    T deserialized;
+                    
+                    if (_serializer.TryDeserialize(value, out deserialized))
                         items.Add(deserialized);
 
-                    _database.Delete(key);
+                    cursor.Delete();
 
                     Interlocked.Decrement(ref _count);
                 }
             }
 
             return items.Count > 0;
-        }
-
-        #endregion
-
-        #region Wrappers
-
-        private class BerkeleyTransaction
-        {
-            private readonly Database _database;
-            private readonly Sequence _sequence;
-            private readonly Transaction _transaction;
-
-            public BerkeleyTransaction(Database database, Sequence sequence, DatabaseEnvironment environment)
-            {
-                _database = database;
-                _sequence = sequence;
-
-                if (environment != null && environment.UsingTxns)
-                    _transaction = environment.BeginTransaction();
-            }
-
-            private bool Enabled { get { return _transaction != null; } }
-
-            public long GetSequence()
-            {
-                return Enabled ? _sequence.Get(1, _transaction) : _sequence.Get(1);
-            }
-
-            public void Put(DatabaseEntry key, DatabaseEntry value)
-            {
-                if (Enabled)
-                    _database.Put(key, value, _transaction);
-                else
-                    _database.Put(key, value);
-            }
-
-            public void Commit()
-            {
-                if (Enabled)
-                    _transaction.Commit();
-            }
-
-            public void Discard()
-            {
-                if (Enabled)
-                    _transaction.Discard();
-            }
         }
 
         #endregion
