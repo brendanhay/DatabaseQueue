@@ -41,7 +41,6 @@ namespace DatabaseQueue.Tests.Collections
             Assert_TryDequeueMultiple_IsTrue(_queue);
         }
 
-
         // TODO: some memory issue here
         [TestMethod]
         public void BerkeleyDbQueue_TryDequeueMultiple_RemovesItemsFromQueue()

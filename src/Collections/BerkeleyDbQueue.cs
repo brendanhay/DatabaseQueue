@@ -28,7 +28,7 @@ namespace DatabaseQueue.Collections
                 CacheSize = new CacheInfo(0, 131072, 1)
             };
 
-            _database = RecnoDatabase.Open("c:\\" + path, databaseConfig);
+            _database = RecnoDatabase.Open(path, databaseConfig);
             _count = (int)_database.Stats().nData;
         }
 
@@ -109,7 +109,7 @@ namespace DatabaseQueue.Collections
                 for (var i = 0; i < max; i++)
                 {
                     if (!cursor.MoveNext())
-                        continue;
+                        break;
 
                     var value = GetEntry(cursor.Current.Value);
 

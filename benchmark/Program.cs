@@ -30,38 +30,31 @@ namespace DatabaseQueue.Benchmark
 
             var serializerFactory = new SerializerFactory<Entity>();
 
-            //foreach (FormatType format in formats)
-            //{
-            //    var serializer = serializerFactory.Create(format);
-                
-            //    BenchmarkSerializer(serializer, Entity.Create, ITERATIONS);
-            //}
+            foreach (FormatType format in formats)
+            {
+                var serializer = serializerFactory.Create(format);
+
+                BenchmarkSerializer(serializer, Entity.Create, ITERATIONS);
+            }
 
             Thread.Sleep(250);
 
             var queueFactory = new DatabaseQueueFactory<Entity>(serializerFactory);
 
-            //foreach (DatabaseType database in databases)
-            //{
-            //    foreach (FormatType format in formats)
-            //    {
-            //        var name = database + format.ToString();
-            //        var path = name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db");
+            foreach (DatabaseType database in databases)
+            {
+                foreach (FormatType format in formats)
+                {
+                    var name = database + format.ToString();
+                    var path = name + (database == DatabaseType.SqlCompact ? ".sdf" : ".db");
 
-            //        var closureFormat = format;
-            //        var closureDatabase = database;
+                    var closureFormat = format;
+                    var closureDatabase = database;
 
-            //        BenchmarkQueue(name, () => queueFactory.Create(path, closureDatabase, closureFormat), 
-            //            () => Entity.CreateCollection(COLLECTION_SIZE), ITERATIONS);
-            //    }
-            //}
-
-            const FormatType formatType = FormatType.Json;
-            var name = "Berkeley" + formatType.ToString();
-            var path = name + (".db");
-
-            BenchmarkQueue("BerkeleyJson", () => queueFactory.Create(path, DatabaseType.Berkeley, formatType),
-                () => Entity.CreateCollection(COLLECTION_SIZE), ITERATIONS);
+                    BenchmarkQueue(name, () => queueFactory.Create(path, closureDatabase, closureFormat),
+                        () => Entity.CreateCollection(COLLECTION_SIZE), ITERATIONS);
+                }
+            }
 
             Console.WriteLine("Finished{0}", Environment.NewLine);
         }
