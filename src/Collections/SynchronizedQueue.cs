@@ -12,7 +12,7 @@ namespace DatabaseQueue.Collections
         }
     }
 
-    public class SynchronizedQueue<T> : IQueue<T>
+    public sealed class SynchronizedQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
 

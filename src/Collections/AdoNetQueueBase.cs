@@ -11,7 +11,7 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// An ADO.NET base class implementation of IDatabaseQueue[T]
     /// </summary>
-    public abstract class AdoNetQueueBase<T> : IQueue<T>
+    internal abstract class AdoNetQueueBase<T> : IQueue<T>
     {
         private readonly IDbConnection _connection;
         private readonly ISerializer<T> _serializer;

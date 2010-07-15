@@ -4,11 +4,11 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    public class DatabaseQueueFactory<T>
+    public sealed class DatabaseQueueFactory<T>
     {
-        private readonly ISerializerFactory<T> _serializerFactory;
+        private readonly ISerializerFactory _serializerFactory;
 
-        public DatabaseQueueFactory(ISerializerFactory<T> serializerFactory)
+        public DatabaseQueueFactory(ISerializerFactory serializerFactory)
         {
             _serializerFactory = serializerFactory;
         }
@@ -26,8 +26,8 @@ namespace DatabaseQueue.Collections
                     queue = new SqliteQueue<T>(path, format, _serializerFactory);
                     break;
                 case DatabaseType.Berkeley:
-                    // Currently only supports json serialization (or shit stored as strings)
-                    queue = new BerkeleyDbQueue<T>(path, new BinarySerializer<T>());
+                    queue = new BerkeleyDbQueue<T>(path, 
+                        _serializerFactory.CreateBinaryComposite<T>(format));
                     break;
                 default:
                     throw new NotSupportedException("The DatabaseType you specified is not supported");

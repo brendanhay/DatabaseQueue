@@ -9,7 +9,7 @@ namespace DatabaseQueue.Tests.Collections
     [TestClass]
     public class SqlCompactQueueTests : QueueTestBase
     {
-        private static SerializerFactory<Entity> _serializerFactory;
+        private static SerializerFactory _serializerFactory;
         private static SqlCompactQueue<Entity> _queue;
 
         [ClassInitialize]
@@ -17,7 +17,7 @@ namespace DatabaseQueue.Tests.Collections
         {
             var path = GetFilePath(context, "SqlCompactQueue.sdf");
 
-            _serializerFactory = new SerializerFactory<Entity>();
+            _serializerFactory = new SerializerFactory();
             _queue = new SqlCompactQueue<Entity>(path, FormatType.Json, _serializerFactory);
         }
 

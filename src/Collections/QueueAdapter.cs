@@ -6,7 +6,7 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// Maps System.Collections.Generic.Queue[T] to IQueue[T]
     /// </summary>
-    public class QueueAdapter<T> : Queue<T>, IQueue<T>
+    public sealed class QueueAdapter<T> : Queue<T>, IQueue<T>
     {
         public QueueAdapter() { }
 

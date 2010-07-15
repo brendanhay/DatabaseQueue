@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace DatabaseQueue.Collections
 {
-    public class BlockingQueue<T> : IQueue<T>
+    public sealed class BlockingQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
         private readonly int _capacity, _timeout;

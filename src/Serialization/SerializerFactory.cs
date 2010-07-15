@@ -2,16 +2,18 @@
 
 namespace DatabaseQueue.Serialization
 {
-    public interface ISerializerFactory<T>
+    public interface ISerializerFactory
     {
-        ISerializer<T> Create(FormatType format);
+        ISerializer<T> Create<T>(FormatType format);
+
+        ISerializer<T, byte[]> CreateBinaryComposite<T>(FormatType format);
     }
 
-    public class SerializerFactory<T> : ISerializerFactory<T>
+    public class SerializerFactory : ISerializerFactory
     {
-        #region ISerializerFactory<T> Members
+        #region ISerializerFactory Members
 
-        public ISerializer<T> Create(FormatType format)
+        public ISerializer<T> Create<T>(FormatType format)
         {
             ISerializer<T> serializer;
 
@@ -25,6 +27,23 @@ namespace DatabaseQueue.Serialization
                     break;
                 default:
                     serializer = new BinarySerializer<T>();
+                    break;
+            }
+
+            return serializer;
+        }
+
+        public ISerializer<T, byte[]> CreateBinaryComposite<T>(FormatType intermediate)
+        {
+            ISerializer<T, byte[]> serializer;
+
+            switch (intermediate)
+            {
+                case FormatType.Binary:
+                    serializer = new BinarySerializer<T>();
+                    break;
+                default:
+                    serializer = Create<T>(intermediate).Composite(new BinarySerializer<string>());
                     break;
             }
 

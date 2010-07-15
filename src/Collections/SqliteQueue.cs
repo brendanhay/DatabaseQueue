@@ -6,12 +6,12 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    public sealed class SqliteQueue<T> : AdoNetQueueBase<T>
+    internal sealed class SqliteQueue<T> : AdoNetQueueBase<T>
     {
         private const string CONNECTION = "Data Source={0}";
 
-        public SqliteQueue(string path, FormatType format, ISerializerFactory<T> factory)
-            : this(path, new SqliteSchema(format), factory.Create(format)) { }
+        public SqliteQueue(string path, FormatType format, ISerializerFactory factory)
+            : this(path, new SqliteSchema(format), factory.Create<T>(format)) { }
 
         public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer) 
             : base(CreateConnection(path), schema,  serializer, false)

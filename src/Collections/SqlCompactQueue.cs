@@ -9,14 +9,14 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    public sealed class SqlCompactQueue<T> : AdoNetQueueBase<T>
+    internal sealed class SqlCompactQueue<T> : AdoNetQueueBase<T>
     {
         private const string CONNECTION = "Data Source=\"{0}\"; Max Database Size=1024; Mode=Exclusive";
 
         private readonly string _connectionString;
 
-        public SqlCompactQueue(string path, FormatType format, ISerializerFactory<T> factory)
-            : this(path, new SqlCompactSchema(format), factory.Create(format)) { }
+        public SqlCompactQueue(string path, FormatType format, ISerializerFactory factory)
+            : this(path, new SqlCompactSchema(format), factory.Create<T>(format)) { }
 
         public SqlCompactQueue(string path, IStorageSchema schema, ISerializer<T> serializer)
             : base(CreateConnection(path), schema, serializer, true)

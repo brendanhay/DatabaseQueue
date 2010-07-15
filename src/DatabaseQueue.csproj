@@ -122,6 +122,7 @@
     <Compile Include="Collections\BerkeleyDbQueue.cs" />
     <Compile Include="Collections\QueueAdapter.cs" />
     <Compile Include="Collections\SqlCompactQueue.cs" />
+    <Compile Include="Serialization\CompositeSerializer.cs" />
     <Compile Include="Serialization\SerializerBase.cs" />
     <Compile Include="Serialization\SerializerFactory.cs" />
     <Compile Include="Serialization\XmlSerializer.cs" />

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace DatabaseQueue.Collections
 {
-    public class BufferedQueue<T> : IQueue<T>
+    public sealed class BufferedQueue<T> : IQueue<T>
     {
         private readonly Thread _thread;
 

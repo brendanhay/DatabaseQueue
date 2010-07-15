@@ -14,7 +14,7 @@ namespace DatabaseQueue.Benchmark
     internal static class Program
     {
         private const int ITERATIONS = 5, 
-            COLLECTION_SIZE = 10000;
+            COLLECTION_SIZE = 10;
         
         private static readonly string _directory = Path.Combine(Environment.CurrentDirectory, 
             "queue_benchmarks");
@@ -28,11 +28,11 @@ namespace DatabaseQueue.Benchmark
             var formats = Enum.GetValues(typeof(FormatType));
             var databases = Enum.GetValues(typeof(DatabaseType));
 
-            var serializerFactory = new SerializerFactory<Entity>();
+            var serializerFactory = new SerializerFactory();
 
             foreach (FormatType format in formats)
             {
-                var serializer = serializerFactory.Create(format);
+                var serializer = serializerFactory.Create<Entity>(format);
 
                 BenchmarkSerializer(serializer, Entity.Create, ITERATIONS);
             }

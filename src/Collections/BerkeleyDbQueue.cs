@@ -6,7 +6,7 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    public sealed class BerkeleyDbQueue<T> : IQueue<T>
+    internal class BerkeleyDbQueue<T> : IQueue<T>
     {
         private readonly ISerializer<T, byte[]> _serializer;
         private readonly RecnoDatabase _database;

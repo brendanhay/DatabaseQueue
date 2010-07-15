@@ -1,42 +1,14 @@
-﻿namespace DatabaseQueue.Serialization
+﻿using System;
+
+namespace DatabaseQueue.Serialization
 {
-    public abstract class SerializerBase<T, TSerialized> : ISerializer<T, TSerialized> 
-        where TSerialized : class
+    public abstract class SerializerBase<T1, T2> : ISerializer<T1, T2> where T2 : class
     {
-        private readonly ISerializer<T> _inner;
-
-        protected SerializerBase(ISerializer<T> inner)
-        {
-            _inner = inner;
-        }
-
-        protected abstract bool TrySerialize(T item, out TSerialized serialized);
-       
-        protected abstract bool TryDeserialize(TSerialized serialized, out T item);
-
-        #region ISerializer Members
-
-        // TODO: Random ideas
-
-        bool ISerializer.TrySerialize(object item, out object serialized)
-        {
-            var preserialized;
-
-            _inner.TrySerialize(item, out preserialized) && ISerializer.TrySerializer(preserialized, out serialized);
-        }
-
-        bool ISerializer.TryDeserialize(object serialized, out object item)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        #endregion
-
         #region ISerializer<T> Members
 
-        bool ISerializer<T>.TrySerialize(T item, out object serialized)
+        bool ISerializer<T1>.TrySerialize(T1 item, out object serialized)
         {
-            TSerialized generic;
+            T2 generic;
             var success = TrySerialize(item, out generic);
 
             serialized = generic;
@@ -44,26 +16,39 @@
             return success;
         }
 
-        bool ISerializer<T>.TryDeserialize(object serialized, out T item)
+        bool ISerializer<T1>.TryDeserialize(object serialized, out T1 item)
         {
-            item = default(T);
-            var cast = serialized as TSerialized;
+            item = default(T1);
+            var cast = serialized as T2;
 
             return (cast != null) && TryDeserialize(cast, out item);
         }
 
-        #endregion
-
-        #region ISerializer<T,TSerialized> Members
-
-        bool ISerializer<T, TSerialized>.TrySerialize(T item, out TSerialized serialized)
+        ISerializer<T1, T3> ISerializer<T1>.Composite<TIntermediate, T3>(ISerializer<TIntermediate, T3> serializer)
         {
-            
+            var type = typeof(T2);
+
+            if (!typeof(TIntermediate).IsAssignableFrom(type))
+            {
+                throw new InvalidCastException(string.Format("Type TIntermediate from ISerializer<T1>.Composite<TIntermediate, T3> must be assignable to {0}",
+                    type));
+            }
+
+            return Composite((ISerializer<T2, T3>)serializer);
         }
 
-        bool ISerializer<T, TSerialized>.TryDeserialize(TSerialized serialized, out T item)
-        {
+        #endregion
 
+        #region ISerializer<T1,T2> Members
+
+        public abstract bool TrySerialize(T1 item, out T2 serialized);
+
+        public abstract bool TryDeserialize(T2 serialized, out T1 item);
+
+        public ISerializer<T1, T3> Composite<T3>(ISerializer<T2, T3> serializer)
+            where T3 : class
+        {
+            return new CompositeSerializer<T1, T2, T3>(this, serializer);
         }
 
         #endregion

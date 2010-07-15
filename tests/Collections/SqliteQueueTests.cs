@@ -13,7 +13,8 @@ namespace DatabaseQueue.Tests.Collections
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            var serializerFactory = new SerializerFactory<Entity>();
+            var serializerFactory = new SerializerFactory();
+
             var path = GetFilePath(context, "SqliteQueue.sqlite");
 
             _queue = new SqliteQueue<Entity>(path, FormatType.Json, serializerFactory);
