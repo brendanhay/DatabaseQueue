@@ -8,7 +8,7 @@ namespace DatabaseQueue.Collections
     /// A queue with an externally facing buffer and a backing store managed by an internal thread. 
     /// Designed to start overflowing (to the backing store) or replenishing (from the backing store)
     /// when certain thresholds (floor/lower, ceiling/upper) are met.
-    /// Designed to be used stand-alone or to wrap existing queues conforming to IQueue<typeparamref name="T"/>
+    /// Designed to be used stand-alone or to wrap existing queues conforming to <see cref="IQueue{T}" />
     /// Non-blocking / Synchronized by default.
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
@@ -38,7 +38,7 @@ namespace DatabaseQueue.Collections
         #region Ctors
 
         /// <summary>
-        /// Creates a new BufferedQueue<typeparamref name="T"/> and automatically starts it.
+        /// Creates a new <see cref="BufferedQueue{T}" /> and automatically starts it.
         /// </summary>
         /// <param name="overflowQueue">Used by the internal thread to store overflow items.</param>
         /// <param name="floor">Number of items before the internal thread starts replenishing from overflow -> buffer.</param>
@@ -47,7 +47,7 @@ namespace DatabaseQueue.Collections
             : this(overflowQueue, new QueueAdapter<T>(), floor, ceiling, true) { }
 
         /// <summary>
-        /// Creates a new BufferedQueue<typeparamref name="T"/>.
+        /// Creates a new <see cref="BufferedQueue{T}" />.
         /// </summary>
         /// <param name="overflowQueue">Used by the internal thread to store overflow items</param>
         /// <param name="floor">Number of items before the internal thread starts replenishing from overflow -> buffer.</param>
@@ -57,7 +57,7 @@ namespace DatabaseQueue.Collections
             : this(overflowQueue, new QueueAdapter<T>(), floor, ceiling, autoStart) { }
 
         /// <summary>
-        /// Creates a new BufferedQueue<typeparamref name="T"/>.
+        /// Creates a new <see cref="BufferedQueue{T}" />.
         /// </summary>
         /// <param name="overflowQueue">Used by the internal thread to store overflow items.</param>
         /// <param name="bufferQueue">Main buffer that call calls to IQueue[T] will operate on.</param>

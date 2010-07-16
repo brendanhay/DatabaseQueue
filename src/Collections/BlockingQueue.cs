@@ -7,8 +7,9 @@ namespace DatabaseQueue.Collections
 {
     /// <summary>
     /// A blocking/size queue which starts blocking when the specified maximum capacity is reached.
-    /// Designed to be used stand-alone or to wrap existing queues conforming to IQueue<typeparamref name="T"/>
+    /// Designed to be used stand-alone or to wrap existing queues conforming to <see cref="IQueue{T}" />
     /// Blocking / non-synchronized by default.
+    /// Implements: <see cref="IQueue{T}" />
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
     public sealed class BlockingQueue<T> : IQueue<T>
@@ -22,7 +23,7 @@ namespace DatabaseQueue.Collections
         #region Ctors
 
         /// <summary>
-        /// Creates a new BlockingQueue<typeparamref name="T"/>.
+        /// Creates a new <see cref="BlockingQueue{T}" />.
         /// </summary>
         /// <param name="capacity">Number of items in the queue before blocking the caller.</param>
         /// <param name="timeout">Number of milliseconds to block until failure is assumed.</param>
@@ -30,7 +31,7 @@ namespace DatabaseQueue.Collections
             : this(new QueueAdapter<T>(), capacity, timeout) { }
 
         /// <summary>
-        /// Creates a new BlockingQueue<typeparamref name="T"/>.
+        /// Creates a new <see cref="BlockingQueue{T}" />.
         /// </summary>
         /// <param name="queue">Used as the internal backing store.</param>
         /// <param name="capacity">Number of items in the queue before blocking the caller.</param>

@@ -9,9 +9,15 @@ namespace DatabaseQueue.Diagnostics
         void Dequeue(bool result, DateTime start, long size);
     }
 
+    /// <summary>
+    /// A wrapper for multiple queue related performance counters.
+    /// Implements: <see cref="IQueuePerformanceCounter" />, <see cref="System.IDisposable" />,
+    /// </summary>
     public sealed class QueuePerformanceCounter : IQueuePerformanceCounter, IDisposable
     {
         public const string CATEGORY = "DatabaseQueue";
+
+        #region Static Ctor
 
         static QueuePerformanceCounter()
         {
@@ -33,6 +39,10 @@ namespace DatabaseQueue.Diagnostics
             PerformanceCounterCategory.Create(CATEGORY, "", PerformanceCounterCategoryType.MultiInstance, counters);
         }
 
+        #endregion
+
+        #region Counters
+
         private readonly PerformanceCounter _enqueueRate;
         private readonly PerformanceCounter _enqueueData;
         private readonly PerformanceCounter _enqueueTime;
@@ -43,6 +53,12 @@ namespace DatabaseQueue.Diagnostics
         private readonly PerformanceCounter _dequeueTimeBase;
         private readonly PerformanceCounter _items;
 
+        #endregion
+
+        /// <summary>
+        /// Creates a new <see cref="QueuePerformanceCounter" />.
+        /// </summary>
+        /// <param name="instance">The instance to name the counters in the performance manager.</param>
         public QueuePerformanceCounter(string instance)
         {
             _enqueueRate = new PerformanceCounter(CATEGORY, CounterType.EnqueueRate.ToString(), instance, false);
