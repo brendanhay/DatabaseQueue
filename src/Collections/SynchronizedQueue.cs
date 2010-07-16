@@ -3,12 +3,12 @@
 namespace DatabaseQueue.Collections
 {
     /// <summary>
-    /// Static class providing a hepler method to create <see cref="SynchronizedQueue{T}" />.
+    /// Static class providing a hepler method to create <see cref="SynchronizedQueue{T}"/>.
     /// </summary>
     public static class SynchronizedQueue
     {
         /// <summary>
-        /// Synchronizes and returns a new <see cref="SynchronizedQueue{T}" /> if the 
+        /// Synchronizes and returns a new <see cref="SynchronizedQueue{T}"/> if the 
         /// supplied queue is not already synchronized, otherwise it returns <param name="queue"/>.
         /// </summary>
         public static IQueue<T> Synchronize<T>(IQueue<T> queue)
@@ -21,9 +21,9 @@ namespace DatabaseQueue.Collections
     
     /// <summary>
     /// A synchronized (thread-safe), locking queue. 
-    /// Designed to be used stand-alone or to wrap existing queues conforming to <see cref="IQueue{T}" />
+    /// Designed to be used stand-alone or to wrap existing queues conforming to <see cref="IQueue{T}"/>
     /// Synchronized by default (obviously).
-    /// Implements: <see cref="IQueue{T}" />
+    /// Implements: <see cref="IQueue{T}"/>
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
     public sealed class SynchronizedQueue<T> : IQueue<T>
@@ -31,13 +31,13 @@ namespace DatabaseQueue.Collections
         private readonly IQueue<T> _queue;
 
         /// <summary>
-        /// Creates a new <see cref="SynchronizedQueue{T}" /> 
-        /// with a <see cref="QueueAdapter{T}" /> as the backing store.
+        /// Creates a new <see cref="SynchronizedQueue{T}"/> 
+        /// with a <see cref="QueueAdapter{T}"/> as the backing store.
         /// </summary>
         public SynchronizedQueue() : this(new QueueAdapter<T>()) { }
 
         /// <summary>
-        /// Creates a new <see cref="SynchronizedQueue{T}" /> 
+        /// Creates a new <see cref="SynchronizedQueue{T}"/> 
         /// with <param name="queue"/> as the backing store.
         /// </summary>
         public SynchronizedQueue(IQueue<T> queue)

@@ -19,13 +19,13 @@ namespace DatabaseQueue.Collections
         }
 
         /// <summary>
-        /// Creates a new <see cref="IQueue{T}" />
+        /// Creates a new <see cref="IQueue{T}"/>
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="database">Database backing the queue.</param>
         /// <param name="format">Format of the data stored in the database.</param>
         /// <returns>
-        /// A new <see cref="IQueue{T}" /> or throws a NotSupportedException 
+        /// A new <see cref="IQueue{T}"/> or throws a NotSupportedException 
         /// if the database is not supported.
         /// </returns>
         public IQueue<T> Create(string path, DatabaseType database, FormatType format)
@@ -34,7 +34,7 @@ namespace DatabaseQueue.Collections
         }
 
         /// <summary>
-        /// Creates a new <see cref="IQueue{T}" />
+        /// Creates a new <see cref="IQueue{T}"/>
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="database">Database backing the queue.</param>
@@ -44,7 +44,7 @@ namespace DatabaseQueue.Collections
         /// null if performance measurements won't be used.
         /// </param>
         /// <returns>
-        /// A new <see cref="IQueue{T}" /> or throws a NotSupportedException 
+        /// A new <see cref="IQueue{T}"/> or throws a NotSupportedException 
         /// if the database is not supported.
         /// </returns>
         public IQueue<T> Create(string path, DatabaseType database, FormatType format, 

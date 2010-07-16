@@ -10,7 +10,7 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// Queue which reads and writes from a Sqlite database
     /// Non-blocking / non-sychronized by default.
-    /// Implements: <see cref="AdoNetQueueBase{T}" />
+    /// Implements: <see cref="AdoNetQueueBase{T}"/>
     /// </summary>
     /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
     internal sealed class SqliteQueue<T> : AdoNetQueueBase<T>
@@ -20,7 +20,7 @@ namespace DatabaseQueue.Collections
         #region Ctors
 
         /// <summary>
-        /// Creates a new <see cref="SqliteQueue{T}" />.
+        /// Creates a new <see cref="SqliteQueue{T}"/>.
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="format">Format that will be stored directly in the database.</param>
@@ -31,7 +31,7 @@ namespace DatabaseQueue.Collections
             : this(path, format, serializerFactory, null) { }
 
         /// <summary>
-        /// Creates a new <see cref="SqliteQueue{T}" />.
+        /// Creates a new <see cref="SqliteQueue{T}"/>.
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="format">Format that will be stored directly in the database.</param>
@@ -47,7 +47,7 @@ namespace DatabaseQueue.Collections
             : this(path, format, serializerFactory.Create<T>(format), performance) { }
 
         /// <summary>
-        /// Creates a new <see cref="SqliteQueue{T}" />.
+        /// Creates a new <see cref="SqliteQueue{T}"/>.
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="format">Format that will be stored directly in the database.</param>
@@ -61,7 +61,7 @@ namespace DatabaseQueue.Collections
             : this(path, new SqliteSchema(format), serializer, performance) { }
 
         /// <summary>
-        /// Creates a new <see cref="SqliteQueue{T}" />.
+        /// Creates a new <see cref="SqliteQueue{T}"/>.
         /// </summary>
         /// <param name="path">Where the database file will be created or opened from.</param>
         /// <param name="schema">Schema which defines the database table and layout.</param>

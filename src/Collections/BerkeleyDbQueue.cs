@@ -10,7 +10,7 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// Queue which reads and writes from a Berkeley-Db database.
     /// Non-blocking / non-sychronized by default.
-    /// Implements: <see cref="IQueue{T}" />
+    /// Implements: <see cref="IQueue{T}"/>
     /// </summary>
     /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
     internal sealed class BerkeleyDbQueue<T> : IQueue<T>

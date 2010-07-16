@@ -12,7 +12,7 @@ namespace DatabaseQueue.Collections
     /// <summary>
     /// An ADO.NET base class implementation of IQueue<typeparam name="T"/>
     /// Non-blocking / non-sychronized by default.
-    /// Implements: <see cref="IQueue{T}" />
+    /// Implements: <see cref="IQueue{T}"/>
     /// </summary>
     /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
     internal abstract class AdoNetQueueBase<T> : IQueue<T>
