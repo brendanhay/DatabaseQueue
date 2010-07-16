@@ -17,7 +17,8 @@ namespace DatabaseQueue.Collections
     }
     
     /// <summary>
-    /// A synchronized (thread-safe), locking queue.
+    /// A synchronized (thread-safe), locking queue. 
+    /// Designed to be used stand-alone or to wrap existing queues conforming to IQueue<typeparamref name="T"/>
     /// Synchronized by default (obviously).
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>

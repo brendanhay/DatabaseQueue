@@ -7,6 +7,7 @@ namespace DatabaseQueue.Collections
 {
     /// <summary>
     /// A blocking/size queue which starts blocking when the specified maximum capacity is reached.
+    /// Designed to be used stand-alone or to wrap existing queues conforming to IQueue<typeparamref name="T"/>
     /// Blocking / non-synchronized by default.
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>

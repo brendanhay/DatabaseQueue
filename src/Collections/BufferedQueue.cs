@@ -8,6 +8,7 @@ namespace DatabaseQueue.Collections
     /// A queue with an externally facing buffer and a backing store managed by an internal thread. 
     /// Designed to start overflowing (to the backing store) or replenishing (from the backing store)
     /// when certain thresholds (floor/lower, ceiling/upper) are met.
+    /// Designed to be used stand-alone or to wrap existing queues conforming to IQueue<typeparamref name="T"/>
     /// Non-blocking / Synchronized by default.
     /// </summary>
     /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
