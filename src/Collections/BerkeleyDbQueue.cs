@@ -7,7 +7,12 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
-    internal class BerkeleyDbQueue<T> : IQueue<T>
+    /// <summary>
+    /// Queue which reads and writes from a Berkeley-Db database.
+    /// Non-blocking / non-sychronized by default.
+    /// </summary>
+    /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
+    internal sealed class BerkeleyDbQueue<T> : IQueue<T>
     {
         private readonly ISerializer<T, byte[]> _serializer;
         private readonly IQueuePerformanceCounter _performance;
@@ -17,11 +22,32 @@ namespace DatabaseQueue.Collections
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a new BerkeleyDbQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
         public BerkeleyDbQueue(string path) : this(path, null) { }
 
+        /// <summary>
+        /// Creates a new BerkeleyDbQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
+        /// </param>
         public BerkeleyDbQueue(string path, IQueuePerformanceCounter performance) 
             : this(path, new BinarySerializer<T>(), performance) { }
 
+        /// <summary>
+        /// Creates a new BerkeleyDbQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="serializer">The serializer to encode items in the database format.</param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
+        /// </param>
         public BerkeleyDbQueue(string path, ISerializer<T, byte[]> serializer, 
             IQueuePerformanceCounter performance)
         {

@@ -5,6 +5,11 @@ using System.Threading;
 
 namespace DatabaseQueue.Collections
 {
+    /// <summary>
+    /// A blocking/size queue which starts blocking when the specified maximum capacity is reached.
+    /// Blocking / non-synchronized by default.
+    /// </summary>
+    /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
     public sealed class BlockingQueue<T> : IQueue<T>
     {
         private readonly IQueue<T> _queue;
@@ -13,9 +18,22 @@ namespace DatabaseQueue.Collections
         private long _enqueued = long.MinValue, 
             _dequeued = long.MinValue;
 
+        #region Ctors
+
+        /// <summary>
+        /// Creates a new BlockingQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="capacity">Number of items in the queue before blocking the caller.</param>
+        /// <param name="timeout">Number of milliseconds to block until failure is assumed.</param>
         public BlockingQueue(int capacity, int timeout) 
             : this(new QueueAdapter<T>(), capacity, timeout) { }
 
+        /// <summary>
+        /// Creates a new BlockingQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="queue">Used as the internal backing store.</param>
+        /// <param name="capacity">Number of items in the queue before blocking the caller.</param>
+        /// <param name="timeout">Number of milliseconds to block until failure is assumed.</param>
         public BlockingQueue(IQueue<T> queue, int capacity, int timeout)
         {
             _queue = queue;
@@ -23,6 +41,8 @@ namespace DatabaseQueue.Collections
             _timeout = timeout;
             _enqueued += queue.Count;
         }
+
+        #endregion
 
         #region Blocking Enqueue / Dequeue
 

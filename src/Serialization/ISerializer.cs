@@ -6,7 +6,7 @@
 
         bool TryDeserialize(object serialized, out T item);
 
-        ISerializer<T, T3> Composite<T2, T3>(ISerializer<T2, T3> serializer)
+        ISerializer<T, T3> PostSerializeWith<T2, T3>(ISerializer<T2, T3> serializer)
             where T2 : class
             where T3 : class;
     }
@@ -17,7 +17,7 @@
 
         bool TryDeserialize(T2 serialized, out T1 item);
 
-        ISerializer<T1, T3> Composite<T3>(ISerializer<T2, T3> serializer)
+        ISerializer<T1, T3> PostSerializeWith<T3>(ISerializer<T2, T3> serializer)
             where T3 : class;
     }
 }

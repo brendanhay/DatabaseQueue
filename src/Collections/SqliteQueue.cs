@@ -7,23 +7,68 @@ using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
 {
+    /// <summary>
+    /// Queue which reads and writes from a Sqlite database
+    /// Non-blocking / non-sychronized by default.
+    /// </summary>
+    /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
     internal sealed class SqliteQueue<T> : AdoNetQueueBase<T>
     {
         private const string CONNECTION = "Data Source={0}";
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a new SqlCompactQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="format">Format that will be stored directly in the database.</param>
+        /// <param name="serializerFactory">
+        /// The factory which will create the serializer to encode items in the database format.
+        /// </param>
         public SqliteQueue(string path, FormatType format, ISerializerFactory serializerFactory)
             : this(path, format, serializerFactory, null) { }
 
+        /// <summary>
+        /// Creates a new SqlCompactQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="format">Format that will be stored directly in the database.</param>
+        /// <param name="serializerFactory">
+        /// The factory which will create the serializer to encode items in the database format.
+        /// </param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
+        /// </param>
         public SqliteQueue(string path, FormatType format, ISerializerFactory serializerFactory,
             IQueuePerformanceCounter performance)
             : this(path, format, serializerFactory.Create<T>(format), performance) { }
 
+        /// <summary>
+        /// Creates a new SqlCompactQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="format">Format that will be stored directly in the database.</param>
+        /// <param name="serializer">The serializer to encode items in the database format.</param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
+        /// </param>
         public SqliteQueue(string path, FormatType format, ISerializer<T> serializer, 
             IQueuePerformanceCounter performance) 
             : this(path, new SqliteSchema(format), serializer, performance) { }
 
+        /// <summary>
+        /// Creates a new SqlCompactQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="path">Where the database file will be created or opened from.</param>
+        /// <param name="schema">Schema which defines the database table and layout.</param>
+        /// <param name="serializer">The serializer to encode items in the database format.</param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
+        /// </param>
         public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer, 
             IQueuePerformanceCounter performance) 
             : base(CreateConnection(path), schema,  serializer, false, performance)

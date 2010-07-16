@@ -24,7 +24,7 @@ namespace DatabaseQueue.Serialization
             return (cast != null) && TryDeserialize(cast, out item);
         }
 
-        ISerializer<T1, T3> ISerializer<T1>.Composite<TIntermediate, T3>(ISerializer<TIntermediate, T3> serializer)
+        ISerializer<T1, T3> ISerializer<T1>.PostSerializeWith<TIntermediate, T3>(ISerializer<TIntermediate, T3> serializer)
         {
             var type = typeof(T2);
 
@@ -34,7 +34,7 @@ namespace DatabaseQueue.Serialization
                     type));
             }
 
-            return Composite((ISerializer<T2, T3>)serializer);
+            return PostSerializeWith((ISerializer<T2, T3>)serializer);
         }
 
         #endregion
@@ -45,7 +45,7 @@ namespace DatabaseQueue.Serialization
 
         public abstract bool TryDeserialize(T2 serialized, out T1 item);
 
-        public ISerializer<T1, T3> Composite<T3>(ISerializer<T2, T3> serializer)
+        public ISerializer<T1, T3> PostSerializeWith<T3>(ISerializer<T2, T3> serializer)
             where T3 : class
         {
             return new CompositeSerializer<T1, T2, T3>(this, serializer);

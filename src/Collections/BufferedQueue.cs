@@ -4,20 +4,25 @@ using System.Threading;
 
 namespace DatabaseQueue.Collections
 {
+    /// <summary>
+    /// A queue with an externally facing buffer and a backing store managed by an internal thread. 
+    /// Designed to start overflowing (to the backing store) or replenishing (from the backing store)
+    /// when certain thresholds (floor/lower, ceiling/upper) are met.
+    /// Non-blocking / Synchronized by default.
+    /// </summary>
+    /// <typeparam name="T">The item type to be stored in the queue.</typeparam>
     public sealed class BufferedQueue<T> : IQueue<T>
     {
-        private readonly Thread _thread;
-
         private readonly IQueue<T> _overflowQueue, _bufferQueue;
         private readonly int _ceiling, _floor;
+        private readonly Thread _thread;
 
         #region Buffer Events
 
         private readonly AutoResetEvent _enqueuedEvent = new AutoResetEvent(false);
         private readonly AutoResetEvent _dequeuedEvent = new AutoResetEvent(false);
-
         private readonly ManualResetEvent _quitEvent = new ManualResetEvent(false);
-
+        
         private readonly WaitHandle[] _handles = new WaitHandle[3];
 
         private enum EventType : byte
@@ -29,12 +34,35 @@ namespace DatabaseQueue.Collections
 
         #endregion
 
+        #region Ctors
+
+        /// <summary>
+        /// Creates a new BufferedQueue<typeparamref name="T"/> and automatically starts it.
+        /// </summary>
+        /// <param name="overflowQueue">Used by the internal thread to store overflow items.</param>
+        /// <param name="floor">Number of items before the internal thread starts replenishing from overflow -> buffer.</param>
+        /// <param name="ceiling">Number of items before the internal thread starts overflowing items from buffer -> overflow.</param>
         public BufferedQueue(IQueue<T> overflowQueue, int floor, int ceiling)
             : this(overflowQueue, new QueueAdapter<T>(), floor, ceiling, true) { }
 
+        /// <summary>
+        /// Creates a new BufferedQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="overflowQueue">Used by the internal thread to store overflow items</param>
+        /// <param name="floor">Number of items before the internal thread starts replenishing from overflow -> buffer.</param>
+        /// <param name="ceiling">Number of items before the internal thread starts overflowing items from buffer -> overflow.</param>
+        /// <param name="autoStart">Whether to start the internal thread automatically, if false, this.Start() will need to be used.</param>
         public BufferedQueue(IQueue<T> overflowQueue, int floor, int ceiling, bool autoStart)
             : this(overflowQueue, new QueueAdapter<T>(), floor, ceiling, autoStart) { }
 
+        /// <summary>
+        /// Creates a new BufferedQueue<typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="overflowQueue">Used by the internal thread to store overflow items.</param>
+        /// <param name="bufferQueue">Main buffer that call calls to IQueue[T] will operate on.</param>
+        /// <param name="floor">Number of items before the internal thread starts replenishing from overflow -> buffer.</param>
+        /// <param name="ceiling">Number of items before the internal thread starts overflowing items from buffer -> overflow.</param>
+        /// <param name="autoStart">Whether to start the internal thread automatically, if false, this.Start() will need to be used.</param>
         internal BufferedQueue(IQueue<T> overflowQueue, IQueue<T> bufferQueue,
             int floor, int ceiling, bool autoStart)
         {
@@ -61,6 +89,8 @@ namespace DatabaseQueue.Collections
             if (autoStart)
                 Start();
         }
+
+        #endregion
 
         #region Internal Threading
 

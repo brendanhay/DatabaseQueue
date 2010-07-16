@@ -43,7 +43,7 @@ namespace DatabaseQueue.Serialization
                     serializer = new BinarySerializer<T>();
                     break;
                 default:
-                    serializer = Create<T>(intermediate).Composite(new BinarySerializer<string>());
+                    serializer = Create<T>(intermediate).PostSerializeWith(new BinarySerializer<string>());
                     break;
             }
 

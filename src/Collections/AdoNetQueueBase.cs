@@ -10,8 +10,10 @@ using DatabaseQueue.Serialization;
 namespace DatabaseQueue.Collections
 {
     /// <summary>
-    /// An ADO.NET base class implementation of IDatabaseQueue[T]
+    /// An ADO.NET base class implementation of IQueue<typeparam name="T"/>
+    /// Non-blocking / non-sychronized by default.
     /// </summary>
+    /// <typeparam name="T">The item type the queue/serializer will support.</typeparam>
     internal abstract class AdoNetQueueBase<T> : IQueue<T>
     {
         private readonly IDbConnection _connection;
@@ -21,14 +23,18 @@ namespace DatabaseQueue.Collections
         private int _disposed, _count;
 
         /// <summary>
-        /// Base class for queues which store items in an ADO.NET Database
+        /// Base class for queues which store items in an ADO.NET Database.
         /// </summary>
-        /// <param name="connection">Open or closed connection which will be used for all commands</param>
-        /// <param name="schema">Schema defining the table, names and Db/Sql types for parameters</param>
-        /// <param name="serializer">Serializer used to serialize/deserialize objects into Db types</param>
+        /// <param name="connection">Open or closed connection which will be used for all commands.</param>
+        /// <param name="schema">Schema defining the table, names and Db/Sql types for parameters.</param>
+        /// <param name="serializer">Serializer used to serialize/deserialize objects into Db types.</param>
         /// <param name="checkTableExists">
         /// If true, a seperate round trip to the database using GetTableExistsCommandText/0 
         /// is made before deciding to call GetCreateTableCommandText based on the result.
+        /// </param>
+        /// <param name="performance">
+        /// The performance counter to measure item throughput, 
+        /// null if performance measurements won't be used.
         /// </param>
         protected AdoNetQueueBase(IDbConnection connection, IStorageSchema schema,
             ISerializer<T> serializer, bool checkTableExists, IQueuePerformanceCounter performance)
