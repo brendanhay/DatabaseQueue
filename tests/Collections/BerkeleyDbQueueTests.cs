@@ -1,5 +1,5 @@
-﻿using DatabaseQueue.Collections;
-using DatabaseQueue.Serialization;
+﻿using DatabaseQueue.Benchmark;
+using DatabaseQueue.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests.Collections
@@ -14,7 +14,7 @@ namespace DatabaseQueue.Tests.Collections
         {
             var path = GetFilePath(context, "BerkeleyDbQueue.db");
 
-            _queue = new BerkeleyDbQueue<Entity>(path, new BinarySerializer<Entity>());
+            _queue = new BerkeleyDbQueue<Entity>(path);
         }
 
         [TestMethod]
@@ -41,7 +41,6 @@ namespace DatabaseQueue.Tests.Collections
             Assert_TryDequeueMultiple_IsTrue(_queue);
         }
 
-        // TODO: some memory issue here
         [TestMethod]
         public void BerkeleyDbQueue_TryDequeueMultiple_RemovesItemsFromQueue()
         {

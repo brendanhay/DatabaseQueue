@@ -1,4 +1,5 @@
 ﻿using System;
+using DatabaseQueue.Benchmark;
 using DatabaseQueue.Collections;
 using DatabaseQueue.Data;
 using DatabaseQueue.Serialization;

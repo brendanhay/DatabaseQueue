@@ -12,7 +12,7 @@ namespace DatabaseQueue.Collections
         object SyncRoot { get; }
 
         bool TryEnqueueMultiple(ICollection<T> items);
-        
+
         bool TryDequeueMultiple(out ICollection<T> items, int max);
     }
 }

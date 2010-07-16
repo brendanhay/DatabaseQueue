@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace DatabaseQueue.Tests
+namespace DatabaseQueue.Benchmark
 {
     public static class RandomHelper
     {

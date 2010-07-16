@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using DatabaseQueue.Data;
+using DatabaseQueue.Diagnostics;
 using DatabaseQueue.Extensions;
 using DatabaseQueue.Serialization;
 
@@ -15,6 +16,7 @@ namespace DatabaseQueue.Collections
     {
         private readonly IDbConnection _connection;
         private readonly ISerializer<T> _serializer;
+        private readonly IQueuePerformanceCounter _performance;
 
         private int _disposed, _count;
 
@@ -28,11 +30,12 @@ namespace DatabaseQueue.Collections
         /// If true, a seperate round trip to the database using GetTableExistsCommandText/0 
         /// is made before deciding to call GetCreateTableCommandText based on the result.
         /// </param>
-        protected AdoNetQueueBase(IDbConnection connection, IStorageSchema schema, 
-            ISerializer<T> serializer, bool checkTableExists)
+        protected AdoNetQueueBase(IDbConnection connection, IStorageSchema schema,
+            ISerializer<T> serializer, bool checkTableExists, IQueuePerformanceCounter performance)
         {
             _connection = connection;
             _serializer = serializer;
+            _performance = performance;
             Schema = schema;
 
             EnsureConnectionIsOpen();
@@ -140,6 +143,8 @@ namespace DatabaseQueue.Collections
             {
                 foreach (var item in items)
                 {
+                    var start = DateTime.Now;
+
                     object serialized;
 
                     if (_serializer.TrySerialize(item, out serialized))
@@ -151,6 +156,9 @@ namespace DatabaseQueue.Collections
                     rows++;
 
                     Interlocked.Increment(ref _count);
+
+                    if (_performance != null)
+                        _performance.Enqueue(true, start, 0);
                 }
             }
 
@@ -169,6 +177,8 @@ namespace DatabaseQueue.Collections
                     {
                         while (reader.Read())
                         {
+                            var start = DateTime.Now;
+
                             var value = reader.GetValue(Schema.Value);
 
                             deleteParameter.Value = reader.GetValue(Schema.Key);
@@ -183,6 +193,9 @@ namespace DatabaseQueue.Collections
                             items.Add(item);
 
                             Interlocked.Decrement(ref _count);
+
+                            if (_performance != null)
+                                _performance.Dequeue(true, start, 0);
                         }
                     }
                 }

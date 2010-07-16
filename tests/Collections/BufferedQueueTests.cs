@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DatabaseQueue.Benchmark;
 using DatabaseQueue.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;

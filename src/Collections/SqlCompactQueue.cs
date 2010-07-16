@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.IO;
 using DatabaseQueue.Data;
+using DatabaseQueue.Diagnostics;
 using DatabaseQueue.Extensions;
 using DatabaseQueue.Serialization;
 
@@ -13,19 +13,30 @@ namespace DatabaseQueue.Collections
     {
         private const string CONNECTION = "Data Source=\"{0}\"; Max Database Size=1024; Mode=Exclusive";
 
-        private readonly string _connectionString;
+        #region Ctors
 
-        public SqlCompactQueue(string path, FormatType format, ISerializerFactory factory)
-            : this(path, new SqlCompactSchema(format), factory.Create<T>(format)) { }
+        public SqlCompactQueue(string path, FormatType format, ISerializerFactory serializerFactory)
+            : this(path, format, serializerFactory, null) { }
 
-        public SqlCompactQueue(string path, IStorageSchema schema, ISerializer<T> serializer)
-            : base(CreateConnection(path), schema, serializer, true)
+        public SqlCompactQueue(string path, FormatType format, ISerializerFactory serializerFactory,
+            IQueuePerformanceCounter performance)
+            : this(path, format, serializerFactory.Create<T>(format), performance) { }
+
+        public SqlCompactQueue(string path, FormatType format, ISerializer<T> serializer, 
+            IQueuePerformanceCounter performance) 
+            : this(path, new SqlCompactSchema(format), serializer, performance) { }
+
+        public SqlCompactQueue(string path, IStorageSchema schema, ISerializer<T> serializer, 
+            IQueuePerformanceCounter performance) 
+            : base(CreateConnection(path), schema, serializer, true, performance)
         {
             if (!path.EndsWith(".sdf"))
                 throw new ArgumentException("File path must be an .sdf file", "path");
 
             Path = path;
         }
+
+        #endregion
 
         public string Path { get; private set; }
 

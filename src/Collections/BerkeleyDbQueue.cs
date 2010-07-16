@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using BerkeleyDB;
+using DatabaseQueue.Diagnostics;
 using DatabaseQueue.Serialization;
 
 namespace DatabaseQueue.Collections
@@ -9,18 +10,27 @@ namespace DatabaseQueue.Collections
     internal class BerkeleyDbQueue<T> : IQueue<T>
     {
         private readonly ISerializer<T, byte[]> _serializer;
+        private readonly IQueuePerformanceCounter _performance;
         private readonly RecnoDatabase _database;
-        
+
         private int _count;
 
-        public BerkeleyDbQueue(string path) : this(path, new BinarySerializer<T>()) { }
+        #region Ctors
 
-        public BerkeleyDbQueue(string path, ISerializer<T, byte[]> serializer)
+        public BerkeleyDbQueue(string path) : this(path, null) { }
+
+        public BerkeleyDbQueue(string path, IQueuePerformanceCounter performance) 
+            : this(path, new BinarySerializer<T>(), performance) { }
+
+        public BerkeleyDbQueue(string path, ISerializer<T, byte[]> serializer, 
+            IQueuePerformanceCounter performance)
         {
             _serializer = serializer;
+            _performance = performance;
             Path = path;
 
-            var databaseConfig = new RecnoDatabaseConfig { 
+            var databaseConfig = new RecnoDatabaseConfig
+            {
                 Creation = CreatePolicy.IF_NEEDED,
                 CacheSize = new CacheInfo(0, 131072, 1),
                 Renumber = false
@@ -29,6 +39,8 @@ namespace DatabaseQueue.Collections
             _database = RecnoDatabase.Open(path, databaseConfig);
             _count = (int)_database.Stats().nData;
         }
+
+        #endregion
 
         public string Path { get; private set; }
 
@@ -51,10 +63,14 @@ namespace DatabaseQueue.Collections
 
         public bool TryEnqueueMultiple(ICollection<T> items)
         {
+            var success = false;
+
             try
             {
                 foreach (var item in items)
                 {
+                    var start = DateTime.Now;
+
                     byte[] serialized;
 
                     if (!_serializer.TrySerialize(item, out serialized))
@@ -65,21 +81,25 @@ namespace DatabaseQueue.Collections
                     _database.Append(value);
 
                     Interlocked.Increment(ref _count);
+
+                    if (_performance != null)
+                        _performance.Enqueue(true, start, 0);
                 }
 
-                return true;
+                success = true;
             }
             catch (Exception ex)
             {
 
             }
 
-            return false;
+            return success;
         }
 
         public bool TryDequeueMultiple(out ICollection<T> items, int max)
         {
             items = new List<T>();
+            var success = false;
 
             try
             {
@@ -87,6 +107,8 @@ namespace DatabaseQueue.Collections
                 {
                     for (var i = 0; i < max; i++)
                     {
+                        var start = DateTime.Now;
+
                         if (!cursor.MoveNext())
                             break;
 
@@ -100,17 +122,20 @@ namespace DatabaseQueue.Collections
                         cursor.Delete();
 
                         Interlocked.Decrement(ref _count);
+
+                        if (_performance != null)
+                            _performance.Dequeue(true, start, 0);
                     }
                 }
 
-                return items.Count > 0;
+                success = items.Count > 0;
             }
             catch (Exception ex)
             {
 
             }
 
-            return false;
+            return success;
         }
 
         #endregion

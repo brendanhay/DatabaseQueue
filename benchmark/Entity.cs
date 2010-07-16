@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DatabaseQueue.Tests
+namespace DatabaseQueue.Benchmark
 {
     /// <summary>
     /// Test entity used by the benchmarker and unit tests

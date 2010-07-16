@@ -99,6 +99,10 @@
     <Compile Include="Collections\SqliteQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\benchmark\DatabaseQueue.Benchmark.csproj">
+      <Project>{617C1137-1F95-4986-AB2B-EB7C54CA56C6}</Project>
+      <Name>DatabaseQueue.Benchmark</Name>
+    </ProjectReference>
     <ProjectReference Include="..\src\DatabaseQueue.csproj">
       <Project>{E4915B6B-B778-49D2-BB21-4DCD8D237238}</Project>
       <Name>DatabaseQueue</Name>

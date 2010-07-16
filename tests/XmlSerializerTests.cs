@@ -1,4 +1,5 @@
-﻿using DatabaseQueue.Serialization;
+﻿using DatabaseQueue.Benchmark;
+using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests

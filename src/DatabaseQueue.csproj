@@ -111,11 +111,11 @@
   <ItemGroup>
     <Compile Include="Collections\BufferedQueue.cs" />
     <Compile Include="Collections\DatabaseQueueFactory.cs" />
-    <Compile Include="RandomHelper.cs" />
+    <Compile Include="Diagnostics\CounterType.cs" />
+    <Compile Include="Diagnostics\QueuePerformanceCounter.cs" />
     <Compile Include="Data\DatabaseType.cs" />
     <Compile Include="Data\FormatType.cs" />
     <Compile Include="Data\StorageColumn.cs" />
-    <Compile Include="Entity.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Serialization\BinarySerializer.cs" />
     <Compile Include="Collections\BlockingQueue.cs" />

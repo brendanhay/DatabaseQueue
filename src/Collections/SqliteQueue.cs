@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Data.SQLite;
 using DatabaseQueue.Data;
+using DatabaseQueue.Diagnostics;
 using DatabaseQueue.Extensions;
 using DatabaseQueue.Serialization;
 
@@ -10,14 +11,27 @@ namespace DatabaseQueue.Collections
     {
         private const string CONNECTION = "Data Source={0}";
 
-        public SqliteQueue(string path, FormatType format, ISerializerFactory factory)
-            : this(path, new SqliteSchema(format), factory.Create<T>(format)) { }
+        #region Ctors
 
-        public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer) 
-            : base(CreateConnection(path), schema,  serializer, false)
+        public SqliteQueue(string path, FormatType format, ISerializerFactory serializerFactory)
+            : this(path, format, serializerFactory, null) { }
+
+        public SqliteQueue(string path, FormatType format, ISerializerFactory serializerFactory,
+            IQueuePerformanceCounter performance)
+            : this(path, format, serializerFactory.Create<T>(format), performance) { }
+
+        public SqliteQueue(string path, FormatType format, ISerializer<T> serializer, 
+            IQueuePerformanceCounter performance) 
+            : this(path, new SqliteSchema(format), serializer, performance) { }
+
+        public SqliteQueue(string path, IStorageSchema schema, ISerializer<T> serializer, 
+            IQueuePerformanceCounter performance) 
+            : base(CreateConnection(path), schema,  serializer, false, performance)
         {
             Path = path;
         }
+
+        #endregion
 
         public string Path { get; private set; }
     
