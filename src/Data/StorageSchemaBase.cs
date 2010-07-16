@@ -3,6 +3,9 @@ using System.Data;
 
 namespace DatabaseQueue.Data
 { 
+    /// <summary>
+    /// Base interface for StorageSchemas defining database layout and operations
+    /// </summary>
     public interface IStorageSchema
     {
         string Table { get; }
@@ -19,18 +22,22 @@ namespace DatabaseQueue.Data
         string TableExistsCommandText { get; }
     }
 
+    /// <summary>
+    /// Base class for StorageSchemas defining database layout and operations 
+    /// which implements common operations.
+    /// </summary>
     public abstract class StorageSchemaBase : IStorageSchema
     {
         /// <summary>
         /// Alias for the primary ctor/2 presuming that 
-        /// DetermineValueTypes was used to figure out the format
+        /// DetermineValueTypes was used to figure out the format.
         /// </summary>
         protected StorageSchemaBase(string intSqlType, KeyValuePair<string, DbType> valueType) 
             : this(intSqlType, valueType.Key, valueType.Value) { }
 
         /// <summary>
         /// Defaults the Table to "Queue", intSqlType/DbType.Int32 "Id", 
-        /// and valueSqlType/valueParameterType "Value"
+        /// and valueSqlType/valueParameterType "Value".
         /// </summary>
         protected StorageSchemaBase(string intSqlType, string valueSqlType, DbType valueParameterType)
         {

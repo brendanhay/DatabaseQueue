@@ -2,6 +2,10 @@
 
 namespace DatabaseQueue.Diagnostics
 {
+    /// <summary>
+    /// Represents the available performance counters.
+    /// Flags: yes
+    /// </summary>
     [Flags]
     public enum CounterType
     {
