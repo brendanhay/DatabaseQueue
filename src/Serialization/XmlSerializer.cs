@@ -4,6 +4,11 @@ using System.Xml.Serialization;
 
 namespace DatabaseQueue.Serialization
 {
+    /// <summary>
+    /// A serializer which serializes <typeparamref name="T"/> 
+    /// to an Xml formatted string and vice versa. 
+    /// </summary>
+    /// <typeparam name="T">The item type to serialize.</typeparam>
     public class XmlSerializer<T> : SerializerBase<T, string>
     {
         private readonly XmlSerializer _serializer;

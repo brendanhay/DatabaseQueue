@@ -1,5 +1,12 @@
 ﻿namespace DatabaseQueue.Serialization
 {
+    /// <summary>
+    /// A serializer which wraps two existing <see cref="ISerializer{T1,T2}" /> 
+    /// to produce a composite serialization chain.
+    /// </summary>
+    /// <typeparam name="T1">Deserialized</typeparam>
+    /// <typeparam name="T2">Intermediate</typeparam>
+    /// <typeparam name="T3">Serialized</typeparam>
     public class CompositeSerializer<T1, T2, T3> : SerializerBase<T1, T3> where T3 : class
     {
         private readonly ISerializer<T1, T2> _pre;

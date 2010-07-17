@@ -2,6 +2,12 @@
 
 namespace DatabaseQueue.Serialization
 {
+    /// <summary>
+    /// Base class for serializers which provides generic implementations
+    /// of <see cref="ISerializer{T1,T2}" /> and <see cref="ISerializer{T1}" />.
+    /// </summary>
+    /// <typeparam name="T1">Deserialized</typeparam>
+    /// <typeparam name="T2">Serialized</typeparam>
     public abstract class SerializerBase<T1, T2> : ISerializer<T1, T2> where T2 : class
     {
         #region ISerializer<T> Members

@@ -3,6 +3,11 @@ using Newtonsoft.Json;
 
 namespace DatabaseQueue.Serialization
 {
+    /// <summary>
+    /// A serializer which serializes <typeparamref name="T"/> 
+    /// to a JSON formatted string and vice versa. 
+    /// </summary>
+    /// <typeparam name="T">The item type to serialize.</typeparam>
     public class JsonSerializer<T> : SerializerBase<T, string>
     {
         public override bool TrySerialize(T item, out string serialized)

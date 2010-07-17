@@ -9,6 +9,9 @@ namespace DatabaseQueue.Serialization
         ISerializer<T, byte[]> CreateBinaryComposite<T>(FormatType format);
     }
 
+    /// <summary>
+    /// A factory for creating serializers.
+    /// </summary>
     public class SerializerFactory : ISerializerFactory
     {
         #region ISerializerFactory Members
