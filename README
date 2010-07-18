@@ -1,3 +1,14 @@
-﻿*PLACEHOLDER*
+﻿BerkeleyQueue
 
-Using Managed System.Data.Sqlite + sqlite3 for mono, to replace 64/32bit compilation issues
+AdoNetQueueBase
+ - SqliteQueue
+ - SqlCompactQueue
+
+BufferedQueue
+SynchronizedQueue
+QueueAdapter
+
+BinarySerializer
+XmlSerializer
+JsonSerializer
+CompositeSerializer
