@@ -2,12 +2,20 @@
 using System.IO;
 using DatabaseQueue.Benchmark;
 using DatabaseQueue.Collections;
+using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests.Collections
 {
     public abstract class QueueTestBase : MockFactory
     {
+        static QueueTestBase()
+        {
+            SerializerFactory = new SerializerFactory();
+        }
+
+        protected static ISerializerFactory SerializerFactory { get; private set; }
+
         #region Assertions
 
         protected void Assert_FileExists(string path)
@@ -39,7 +47,7 @@ namespace DatabaseQueue.Tests.Collections
             ICollection<Entity> items;
 
             Assert_TryEnqueueMultiple_IsTrue(queue);
-            Assert.IsTrue(queue.TryDequeueMultiple(out items, int.MaxValue), 
+            Assert.IsTrue(queue.TryDequeueMultiple(out items, Items.Count * 2), 
                 "TryDequeueMultiple failed");
             Assert.IsTrue(queue.Count == 0, "Queue was expected to have 0 items");
         }

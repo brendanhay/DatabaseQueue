@@ -7,20 +7,20 @@ namespace DatabaseQueue.Tests.Collections
     [TestClass]
     public class BerkeleyDbQueueTests : QueueTestBase
     {
-        private static BerkeleyDbQueue<Entity> _queue;
+        private static IQueue<Entity> _queue;
+        private static string _path;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            var path = GetFilePath(context, "BerkeleyDbQueue.db");
-
-            _queue = new BerkeleyDbQueue<Entity>(path);
+            _path = GetFilePath(context, "BerkeleyDbQueue.db");
+            _queue = SynchronizedQueue.Synchronize(new BerkeleyDbQueue<Entity>(_path));
         }
 
         [TestMethod]
         public void BerkeleyDbQueue_Ctor_CreatesFile()
         {
-            Assert_FileExists(_queue.Path);
+            Assert_FileExists(_path);
         }
 
         [TestMethod]

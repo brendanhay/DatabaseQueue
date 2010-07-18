@@ -2,7 +2,6 @@
 using DatabaseQueue.Benchmark;
 using DatabaseQueue.Collections;
 using DatabaseQueue.Data;
-using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests.Collections
@@ -10,16 +9,15 @@ namespace DatabaseQueue.Tests.Collections
     [TestClass]
     public class SqlCompactQueueTests : QueueTestBase
     {
-        private static SerializerFactory _serializerFactory;
-        private static SqlCompactQueue<Entity> _queue;
+        private static IQueue<Entity> _queue;
+        private static string _path;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            var path = GetFilePath(context, "SqlCompactQueue.sdf");
-
-            _serializerFactory = new SerializerFactory();
-            _queue = new SqlCompactQueue<Entity>(path, FormatType.Json, _serializerFactory);
+            _path = GetFilePath(context, "SqlCompactQueue.sdf");
+            _queue = SynchronizedQueue.Synchronize(new SqlCompactQueue<Entity>(_path,
+                FormatType.Json, SerializerFactory));
         }
 
         [TestMethod]
@@ -27,7 +25,7 @@ namespace DatabaseQueue.Tests.Collections
         public void SqlCompactQueue_Ctor_InvalidFileExtension_Throws_ArgumentException()
         {
             new SqlCompactQueue<Entity>("Somenonsense." + RandomHelper.GetString(3), 
-                FormatType.Json, _serializerFactory);
+                FormatType.Json, SerializerFactory);
 
             Assert.Fail("Expected ArgumentException was not thrown");
         }
@@ -35,7 +33,7 @@ namespace DatabaseQueue.Tests.Collections
         [TestMethod]
         public void SqlCompactQueue_Ctor_CreatesFile()
         {
-            Assert_FileExists(_queue.Path);
+            Assert_FileExists(_path);
         }
 
         [TestMethod]

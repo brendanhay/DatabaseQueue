@@ -1,7 +1,6 @@
 ﻿using DatabaseQueue.Benchmark;
 using DatabaseQueue.Collections;
 using DatabaseQueue.Data;
-using DatabaseQueue.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DatabaseQueue.Tests.Collections
@@ -9,22 +8,21 @@ namespace DatabaseQueue.Tests.Collections
     [TestClass]
     public class SqliteQueueTests : QueueTestBase
     {
-        private static SqliteQueue<Entity> _queue;
+        private static IQueue<Entity> _queue;
+        private static string _path;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context)
         {
-            var serializerFactory = new SerializerFactory();
-
-            var path = GetFilePath(context, "SqliteQueue.sqlite");
-
-            _queue = new SqliteQueue<Entity>(path, FormatType.Json, serializerFactory);
+            _path = GetFilePath(context, "SqliteQueue.sqlite");
+            _queue = SynchronizedQueue.Synchronize(new SqliteQueue<Entity>(_path, 
+                FormatType.Json, SerializerFactory));
         }
 
         [TestMethod]
         public void SqliteQueue_Ctor_CreatesFile()
         {
-            Assert_FileExists(_queue.Path);
+            Assert_FileExists(_path);
         }
 
         [TestMethod]
