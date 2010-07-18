@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using DatabaseQueue.Collections;
 using DatabaseQueue.Data;
@@ -26,6 +27,8 @@ namespace DatabaseQueue.Benchmark
 
             Console.WriteLine("Starting{0}", Environment.NewLine);
 
+            #region Serializers
+
             var formats = Enum.GetValues(typeof(FormatType));
             var databases = Enum.GetValues(typeof(DatabaseType));
 
@@ -39,6 +42,10 @@ namespace DatabaseQueue.Benchmark
             }
 
             Thread.Sleep(250);
+
+            #endregion
+
+            #region Queues
 
             var queueFactory = new DatabaseQueueFactory<Entity>(serializerFactory);
 
@@ -56,6 +63,8 @@ namespace DatabaseQueue.Benchmark
                         closureFormat, new QueuePerformanceCounter(name)), Entity.CreateCollection);
                 }
             }
+
+            #endregion
 
             Console.WriteLine("Finished{0}", Environment.NewLine);
         }
@@ -176,6 +185,7 @@ namespace DatabaseQueue.Benchmark
 
                     watch.Stop();
                     deserialization.Add(watch.ElapsedMilliseconds);
+
                 }
             }
 
@@ -184,6 +194,13 @@ namespace DatabaseQueue.Benchmark
             WriteAverage("Serialization", total, serialization);
             WriteAverage("Deserialization", total, deserialization);
             WriteThroughput(total, serialization, deserialization);
+            
+            var size = (serialized is string)
+                ? Encoding.UTF8.GetBytes((string)serialized).LongLength
+                : ((byte[])serialized).LongLength;
+
+            WriteMethod("Size");
+            Console.WriteLine(FormatBytes(size));
 
             //WriteMeasurement("Entity Size", size(serialized).LongLength, "bytes");
             Console.WriteLine();
@@ -260,6 +277,23 @@ namespace DatabaseQueue.Benchmark
             var averageItems = total / events.Count();
 
             return Math.Round((1000 / averageTime) * averageItems, 0);
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            const int scale = 1024;
+            var orders = new [] { "GB", "MB", "KB", "Bytes" };
+            var max = (long)Math.Pow(scale, orders.Length - 1);
+
+            foreach (string order in orders)
+            {
+                if (bytes > max)
+                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
+
+                max /= scale;
+            }
+
+            return "0 Bytes";
         }
     }
 }

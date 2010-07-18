@@ -36,23 +36,23 @@ namespace DatabaseQueue.Benchmark
             if (!defaults)
                 return;
 
-            Text = RandomHelper.GetString(250);
-            Number = int.MaxValue;
+            Text = RandomHelper.GetString(255);
+            Positive = Int64.MaxValue;
+            Negative = Int64.MinValue;
             Date = DateTime.UtcNow;
-            Urls = Enumerable.Range(0, 5).Select(i => RandomHelper.GetString(20)).ToList();
-            Empty = new List<Entity>();
+            Urls = Enumerable.Range(0, 10).Select(i => RandomHelper.GetString(255)).ToList();
         }
 
         public string Text { get; set; }
 
-        public int Number { get; set; }
+        public Int64 Positive { get; set; }
+
+        public Int64 Negative { get; set; }
 
         public DateTime Date { get; set; }
 
         public List<string> Urls { get; set; }
         
-        public List<Entity> Empty { get; set; }
-
         public override bool Equals(object obj)
         {
             var other = obj as Entity;
@@ -61,10 +61,15 @@ namespace DatabaseQueue.Benchmark
                 return false;
 
             return Text == other.Text
-                && Number == other.Number
+                && Positive == other.Positive
+                && Negative == other.Negative
                 && Date.ToShortTimeString() == other.Date.ToShortTimeString()
-                && Urls.SequenceEqual(other.Urls)
-                && Empty.SequenceEqual(other.Empty);
+                && Urls.SequenceEqual(other.Urls);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
